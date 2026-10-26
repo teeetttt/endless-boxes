@@ -94,7 +94,8 @@ crk2:['k...k...','.k..k.k.','..kkk.k.','...k.kk.','.kkk.k..','k..kkk..','.k...kk
 spk:['s..s..s.','s..s..s.','ss.ss.ss','ss.ss.ss','sSsSsSsS','SSSSSSSS','kkkkkkkk','kkkkkkkk'],
 spk0:['........','........','........','........','.k.k.k.k','kkkkkkkk','SSSSSSSS','kkkkkkkk'],
 compass:['..kkkk..','.kwwrwk.','kwwwrwwk','kwwwrwwk','kwwSSwwk','kwwSwwwk','.kwSwwk.','..kkkk..'],
-dice:['kkkkkkkk','kwkwwkwk','kwwwwwwk','kwwkkwwk','kwwkkwwk','kwwwwwwk','kwkwwkwk','kkkkkkkk']});
+dice:['kkkkkkkk','kwkwwkwk','kwwwwwwk','kwwkkwwk','kwwkkwwk','kwwwwwwk','kwkwwkwk','kkkkkkkk'],
+mud:['bbBbbBbb','bBbbbbBb','bbbBbbbb','BbbbbBbb','bbbBbbbB','bBbbbbbb','bbbbBbBb','bBbbbbbb']});
 const SP={},IC={};
 for(const k in ART){const c=document.createElement('canvas');c.width=c.height=8;const x=c.getContext('2d');ART[k].forEach((r,j)=>[...r].forEach((h,i)=>{if(PAL[h]){x.fillStyle=PAL[h];x.fillRect(i,j,1,1)}}));SP[k]=c;IC[k]=c.toDataURL()}
 const ic=k=>`<img class="ic" src="${IC[k]}">`;
@@ -105,31 +106,33 @@ const RC=['Common','Rare','Epic','Cursed'],RW=[6,3,1,2],DR=[[0,-1],[1,0],[0,1],[
 const POOL=[
 {id:'pull',n:'Pulling Gloves',r:0,t:'+2 box pulls per level (press E or the Pull button, then step away from the box)'},
 {id:'ham',n:'Wall Hammer',r:0,t:'+2 smashes of inner walls per level'},
-{id:'life',n:'Life Potion',r:0,t:'+1 life'},
 {id:'undo',n:'Rewind Hourglass',r:0,t:'+3 undos'},
-{id:'shoe',n:'Light Boots',r:0,t:'+15% step budget per level (stackable)'},
-{id:'luck',n:'Four-Leaf Clover',r:0,t:'Get 2 free rerolls'},
 {id:'heavy',n:'Mighty Wristband',r:1,u:1,t:'Push two connected boxes at once'},
 {id:'shield',n:'Guardian Shield',r:1,t:'Blocks one out-of-steps failure and refills 8 steps'},
-{id:'bag',n:'Coin Purse',r:1,u:1,t:'Double the coins for clearing a level'},
 {id:'scout',n:'Eagle Eye',r:1,u:1,t:'Ignores fog'},
-{id:'sage',n:"Sage's Book",r:2,ic:'undo',t:'+1 undo for every floor cleared (stackable)'},
-{id:'seer',n:"Seer's Eye",r:2,ic:'scout',t:'Get 1 hint at the start of each level (stackable)'},
+{id:'sage',n:"Sage's Book",r:2,ic:'undo',lootOff:1,t:'+1 undo for every floor cleared (stackable)'},
+{id:'seer',n:"Seer's Eye",r:2,ic:'scout',lootOff:1,t:'Get 1 hint at the start of each level (stackable)'},
 {id:'titan',n:"Titan's Hammer",r:2,ic:'ham',t:'+4 wall smashes per level'},
 {id:'fury',n:'Fury Mask',r:3,u:1,ic:'pull',t:'Unlimited box pulls, but undo is sealed'},
 {id:'glass',n:'Glass Heart',r:3,ic:'life',t:'+6 undos, but you lose a heart immediately (at least 1 is kept)'},
 {id:'dusk',n:'Dusk Pact',r:3,u:1,ic:'bag',t:'Forced fog on every level, and +3 extra coins for clearing'},
-{id:'compass',n:'Compass',r:0,u:1,t:'In fog, boxes and goals still show as small colored dots (matching colors belong together)'},
+{id:'compass',n:'Compass',r:0,u:1,lootOff:1,t:'In fog, boxes and goals still show as small colored dots (matching colors belong together)'},
 {id:'dice',n:"Gambler's Dice",r:2,u:1,t:'Once per run, reroll the current floor into a brand new layout (G key or the Dice button)'},
 {id:'echo',n:'Echo Boots',r:1,u:1,ic:'shoe',t:'+3 steps the first time a box lands on each goal in a level'},
 {id:'swap',n:'Swap Charm',r:1,ic:'tele',t:'+1 swap per level: press X or Swap, then walk into a box to trade places with it (stackable)'},
 {id:'thread',n:'Time Thread',r:2,u:1,ic:'undo',t:'Undo costs no steps'},
-{id:'pact',n:'Door Pact',r:3,u:1,ic:'bag',t:'Every door gets one extra seal, but each seal pays +2 more coins'}];
-const MODS={fog:['Fog','Vision is only 3 tiles'],rush:['Rush','No spare steps'],maze:['Maze','More walls'],crowd:['Crowded','One extra box'],mirror:['Mirror','Left and right are swapped'],crumble:['Crumble','Tiles break after you step off them too many times'],ghost:['Ghost Box','A phantom box vanishes when you push it (it needs no goal)']};
-const DF=[{n:'Casual',d:'5 lives · generous step margin · hints available',life:5,undo:6,hint:5,cap:8e4,f:[.8,8],m:[.25,4],k:1},
-{n:'Standard',d:'3 lives · moderate margin · 1 hint',life:3,undo:3,hint:1,cap:12e4,f:[.35,4],m:[.55,3],k:1},
-{n:'Nightmare',d:'2 lives · tiny margin · frequent modifiers · only 1 undo',life:2,undo:1,hint:0,cap:16e4,f:[.12,1],m:[.85,2],k:1.5},
-{n:'Hell',d:'1 life · steps must equal the optimal solution · no undo · modifiers every floor',life:1,undo:0,hint:0,cap:22e4,f:[0,0],m:[1,1],k:2}];
+{id:'pact',n:'Door Pact',r:3,u:1,ic:'bag',t:'Adds an extra floor condition; earn +2 bonus coins per condition'},
+{id:'anchor',n:'Anchor Sigil',r:2,u:1,ic:'shield',t:'Crumble conditions cannot destroy tiles; the solution accounts for stable floors'},
+{id:'prism',n:'Prismatic Core',r:3,u:1,ic:'compass',t:'Boxes can fill any goal regardless of color; the solution accounts for this'},
+{id:'colossus',n:'Colossus Grip',r:2,u:1,ic:'heavy',t:'Push a connected line of up to 3 boxes at once'},
+{id:'swamp',n:'Swamp Boots',r:1,u:1,ic:'shoe',t:'Mud tiles cost no extra steps'},
+{id:'drill',n:'Drill Gauntlet',r:2,ic:'ham',t:'+8 wall smashes per level (stackable)'},
+{id:'rope',n:'Grapple Rope',r:2,ic:'pull',t:'+3 box pulls per level (stackable)'}];
+const MODS={fog:['Fog','Vision is only 3 tiles'],rush:['Rush','No spare steps'],maze:['Maze','More walls'],crowd:['Crowded','One extra box'],mirror:['Mirror','Left and right are swapped'],crumble:['Crumble','Tiles break after you step off them too many times'],ghost:['Ghost Box','A phantom box vanishes when you push it (it needs no goal)'],muddy:['Muddy','Extra mud tiles: stepping on mud costs 2 steps'],swarm:['Swarm','Two extra boxes']};
+const DF=[{n:'Casual',d:'4 lives · tight step margin · 2 starting hints',life:4,undo:4,hint:2,cap:12e4,f:[.2,2],m:[.35,3],k:1},
+{n:'Standard',d:'2 lives · narrow step margin · 2 undos · 1 hint',life:2,undo:2,hint:1,cap:18e4,f:[.1,1],m:[.7,2],k:1.1},
+{n:'Nightmare',d:'1 life · near-optimal steps · no starting undo or hints · stacked conditions',life:1,undo:0,hint:0,cap:28e4,f:[0,0],m:[1,1],k:1.6},
+{n:'Hell',d:'1 life · optimal step budget · no undo or hints · maximum floor conditions',life:1,undo:0,hint:0,cap:36e4,f:[0,0],m:[1,1],k:2.2}];
 let S={over:1},L={won:1},L0,H=[],armed=false,wa=false,B={},mm=false,sm=false,AC,VP=null,P=[],SH=[],mt,mi=0;
 try{B=JSON.parse(localStorage.getItem('pxsoko2'))||{}}catch(e){}
 const ico=id=>ic((POOL.find(p=>p.id==id)||{}).ic||id),cnt=id=>S.rel.filter(r=>r==id).length,UC=()=>cnt('thread')?0:2;
@@ -214,15 +217,15 @@ function solve(m,ar,gl,bx,px,py,cap){
  return null;
 }
 function gen(d,M){
- const df=S.df;let bc=null;
- for(let tries=0;;tries++){
-  const W=Math.min(7+(d/3|0)+(df>2),11),Hh=Math.min(7+((d+1)/3|0)+(df>2),10),nb=Math.min(2+(d*.6|0)+(M.includes('crowd')?1:0)+[0,0,1,2][df],9);
-  const wp=.13+Math.min(d,10)*.008+(M.includes('maze')?.09:0);
+ const df=S.df;
+ for(let tries=0;tries<36;tries++){
+  const W=Math.min(7+(d/3|0)+(df>2),11),Hh=Math.min(7+((d+1)/3|0)+(df>2),10),nb=Math.min(6,3+(d*.4|0)+(M.includes('crowd')?1:0)+(M.includes('swarm')?2:0)+[0,1,2,3][df]);
+  const wp=.2+Math.min(d,12)*.01+(M.includes('maze')?.10:0);
   const m=[...Array(Hh)].map((_,y)=>[...Array(W)].map((_,x)=>+(x==0||y==0||x==W-1||y==Hh-1||Math.random()<wp)));
   const fr=[];m.forEach((r,y)=>r.forEach((v,x)=>v||fr.push([x,y])));
   if(fr.length<nb+14)continue;
   fr.sort(()=>Math.random()-.5);
-  const nt=d>=8?3:d>=4?2:1,goals=fr.slice(0,nb).map(([x,y],i)=>[x,y,i%nt]),bx=goals.map(a=>[...a]);
+  const nt=d>=6?3:d>=3?2:1,goals=fr.slice(0,nb).map(([x,y],i)=>[x,y,i%nt]),bx=goals.map(a=>[...a]);
   let px=fr[nb][0],py=fr[nb][1];
   const ar=m.map(r=>r.map(()=>0));
   if(d>=2)fr.slice(nb+1,nb+1+Math.min(1+(d/2|0),8)).forEach(([x,y])=>ar[y][x]=1+(Math.random()*4|0));
@@ -241,19 +244,23 @@ function gen(d,M){
    const k=key(),j=stk.lastIndexOf(k);
    if(j<0)stk.push(k);else stk.length=j+1;
   }
-  // Keep generated starting positions clear of one-way arrows. The scramble walk
-  // can move a box (or the player) onto an arrow after arrows are placed.
-  bx.forEach(([x,y])=>{ar[y][x]=0});
-  ar[py][px]=0;
+  bx.forEach(([x,y])=>{ar[y][x]=0});ar[py][px]=0;
   const off=bx.filter(b=>!goals.some(q=>q[0]==b[0]&&q[1]==b[1]&&q[2]==b[2])).length,cd={m,ar,W,H:Hh,goals,bx,px,py,par:stk.length-1,sc:off*4+stk.length};
-  if(!bc||cd.sc>bc.sc)bc=cd;
-  if(off<Math.max(2,Math.round(nb*.5))||stk.length<6+nb*1.5){if(tries<80)continue}else bc=cd;
-  const r=solve(bc.m,bc.ar,bc.goals,bc.bx,bc.px,bc.py,DF[df].cap);
-  if(tries<80&&r&&r.n<8)continue;
-  return{...bc,opt:r?r.n:null};
+  if(off<Math.max(2,Math.round(nb*.5))||stk.length<6+nb*1.5)continue;
+  const genCap=[65000,80000,100000,120000][df],r=solve(cd.m,cd.ar,cd.goals,cd.bx,cd.px,cd.py,genCap);
+  if(!r)continue;
+  const minNeed=[9,12,15,18][df]+Math.min(6,d>>1);
+  if(tries<18&&r.n<minNeed)continue;
+  return{...cd,opt:r.n};
  }
+ // Guaranteed-solvable fallback. It is used only when random candidates fail validation.
+ const W=Math.min(11,Math.max(7,7+(d/3|0)+(df>2))),Hh=Math.min(10,Math.max(7,7+((d+1)/3|0)+(df>2))),nt=d>=8?3:d>=4?2:1,nb=Math.min(4,Math.max(2,1+(d>=4)+(d>=9)+(df>=2)));
+ const m=[...Array(Hh)].map((_,y)=>[...Array(W)].map((_,x)=>+(x==0||y==0||x==W-1||y==Hh-1))),ar=m.map(r=>r.map(()=>0));
+ const goals=[],bx=[];for(let i=0;i<nb;i++){const y=2+i;goals.push([W-2,y,i%nt]);bx.push([W-3,y,i%nt])}
+ const px=1,py=2,r=solve(m,ar,goals,bx,px,py,Math.max(DF[df].cap,22e4));
+ return{m,ar,W,H:Hh,goals,bx,px,py,par:0,sc:nb*4+10,opt:r?r.n:W*nb};
 }
-function lm(T,x,y){const t=T.tl?T.tl[y][x]:0;return t==5?Math.min(2,T.lim||2):(T.lim||0)}
+function lm(T,x,y){if(T.anchor)return 0;const t=T.tl?T.tl[y][x]:0;return t==5?Math.min(2,T.lim||2):(T.lim||0)}
 function ho(T,x,y){const l=lm(T,x,y);return l&&(((T.wc&&T.wc[y*T.W+x])|0)>=l)?1:0}
 function sol(T,x,y){
  if(T.m[y][x])return 1;
@@ -276,51 +283,82 @@ function fxs(T,e,i,isP){
 }
 function trg(T,e){if(T.tl&&T.tl[e[1]][e[0]]==2)T.gate=1}
 function wear(T,x,y){const l=lm(T,x,y);if(l){T.wc={...T.wc};const k=y*T.W+x;T.wc[k]=(T.wc[k]|0)+1}}
-function sstep(T,i){
+function sstep(T,i,mode='normal'){
  const[dx,dy]=DR[i],px=T.px,py=T.py,tx=px+dx,ty=py+dy;
- if(sol(T,tx,ty)||!aok(T,tx,ty,i))return 0;
- const bi=T.bx.findIndex(q=>q[0]==tx&&q[1]==ty);
+ if(T.m[ty][tx]){
+  if(mode!='hammer'||(T.ham|0)<1||tx<=0||ty<=0||tx>=T.W-1||ty>=T.H-1)return 0;
+  T.m=T.m.map(r=>r.slice());T.m[ty][tx]=0;T.ham--;
+  const dug=(T.dug||'').split('.').filter(Boolean);dug.push(String(ty*T.W+tx));T.dug=dug.sort((a,b)=>+a-+b).join('.');
+ }else if(sol(T,tx,ty)||!aok(T,tx,ty,i))return 0;
+ if(!aok(T,tx,ty,i))return 0;
+ const bi=T.bx.findIndex(q=>q[0]==tx&&q[1]==ty),target=bi>=0?T.bx[bi]:null;
+ if(mode=='swap'&&(!target||target[2]==3||(T.swp|0)<1||T.ar[py][px]))return 0;
+ if(mode=='pull'&&target&&target[2]!=3)return 0;
+ let pushed=0,swapped=0;
  if(bi>=0){
   const b=T.bx[bi];
   if(b[2]==3)T.bx.splice(bi,1);
-  else{
-   const qx=tx+dx,qy=ty+dy;
-   if(sol(T,qx,qy)||!aok(T,qx,qy,i)||T.bx.some(q=>q[0]==qx&&q[1]==qy))return 0;
-   b[0]=qx;b[1]=qy;fxs(T,b,i,0);trg(T,b);
+  else if(mode=='swap'){
+   b[0]=px;b[1]=py;T.swp--;swapped=1;fxs(T,b,(i+2)%4,0);trg(T,b);
+  }else{
+   const chain=[];let cx=tx,cy=ty,q;
+   while((q=T.bx.find(v=>v[0]==cx&&v[1]==cy))){chain.push(q);cx+=dx;cy+=dy}
+   const max=T.colossus?3:(T.heavy?2:1);
+   if(chain.length>max||sol(T,cx,cy)||!aok(T,cx,cy,i)||T.bx.some(v=>v[0]==cx&&v[1]==cy))return 0;
+   if(chain.some(v=>!aok(T,v[0]+dx,v[1]+dy,i)))return 0;
+   for(let j=chain.length-1;j>=0;j--){const v=chain[j];v[0]+=dx;v[1]+=dy;fxs(T,v,i,0);trg(T,v)}
+   pushed=1;
   }
  }
  const e=[tx,ty];fxs(T,e,i,1);
- wear(T,px,py);T.px=e[0];T.py=e[1];T.n=(T.n|0)+1;
+ wear(T,px,py);T.px=e[0];T.py=e[1];T.n=(T.n|0)+1;T.xc=1+(T.tl&&T.tl[e[1]][e[0]]==8&&!T.boots?1:0);
+ if(mode=='pull'){
+  if((T.pull|0)<1||!aok(T,px,py,i))return 0;
+  const pb=T.bx.find(b=>b[0]==px-dx&&b[1]==py-dy);
+  if(!pb)return 0;
+  pb[0]=px;pb[1]=py;T.pull--;trg(T,pb);
+ }
  return 1;
 }
-function solveX(T0,cap){
+function solveX(T0,cap,lim){
  const W=T0.W,gl=T0.goals,base={...T0},fl=new Set;
  if(T0.tl)T0.tl.forEach(r=>r.forEach(v=>v&&fl.add(v)));
- const sp=fl.has(6)||fl.has(7),cm=fl.has(1)||fl.has(4),
- sk=T=>T.px+','+T.py+'|'+T.gate+'|'+(sp?T.n&1:0)+'|'+T.bx.map(q=>(q[1]*W+q[0])*4+q[2]).sort((a,c)=>a-c)+'|'+Object.keys(T.wc).sort().map(k=>k+':'+T.wc[k]),
- hs=T=>T.bx.reduce((s,[x,y,t])=>t==3||gl.some(q=>q[0]==x&&q[1]==y&&q[2]==t)?s:s+(cm?1:Math.min(...gl.filter(q=>q[2]==t).map(q=>Math.abs(x-q[0])+Math.abs(y-q[1])))),0),
- done=T=>T.bx.every(([x,y,t])=>t==3||gl.some(q=>q[0]==x&&q[1]==y&&q[2]==t)),
- best=new Map,open=[],
- root={__proto__:base,bx:T0.bx.map(a=>a.slice()),px:T0.px,py:T0.py,gate:T0.gate|0,wc:T0.wc||{},n:T0.n|0,g:0,pr:null,i:-1};
- root.k=sk(root);best.set(root.k,0);open[hs(root)]=[root];
- for(let f=0;f<open.length;f++){const q=open[f];while(q&&q.length){
-  const nd=q.pop();if(best.get(nd.k)<nd.g)continue;
-  if(done(nd)){const p=[];for(let c=nd;c.pr;c=c.pr)p.push(c.i);p.reverse();return{n:nd.g,first:p.length?p[0]:null,path:p}}
+ const sp=fl.has(6)||fl.has(7),cm=fl.has(1)||fl.has(4),prism=!!T0.prism,
+ sk=T=>T.px+','+T.py+'|'+T.gate+'|'+(sp?T.n&1:0)+'|'+T.bx.map(q=>(q[1]*W+q[0])*4+q[2]).sort((a,c)=>a-c)+'|p'+(T.pull|0)+'|s'+(T.swp|0)+'|h'+(T.ham|0)+'|d'+(T.dug||'')+'|'+Object.keys(T.wc||{}).sort().map(k=>k+':'+T.wc[k]),
+ hs=T=>T.bx.reduce((s,[x,y,t])=>t==3||gl.some(q=>q[0]==x&&q[1]==y&&(prism||q[2]==t))?s:s+(cm?1:Math.min(...gl.filter(q=>prism||q[2]==t).map(q=>Math.abs(x-q[0])+Math.abs(y-q[1])))),0),
+ done=T=>T.bx.every(([x,y,t])=>t==3||gl.some(q=>q[0]==x&&q[1]==y&&(T.prism||q[2]==t))),
+ best=new Map,open=[];
+ const push=n=>{let i=open.length;open.push(n);while(i>0){const p=(i-1)>>1;if(open[p].f<=n.f)break;open[i]=open[p];i=p}open[i]=n};
+ const pop=()=>{const top=open[0],last=open.pop();if(open.length){let i=0;while(true){let c=i*2+1;if(c>=open.length)break;if(c+1<open.length&&open[c+1].f<open[c].f)c++;if(open[c].f>=last.f)break;open[i]=open[c];i=c}open[i]=last}return top};
+ const root={__proto__:base,m:T0.m,bx:T0.bx.map(a=>a.slice()),px:T0.px,py:T0.py,gate:T0.gate|0,wc:T0.wc||{},n:T0.n|0,pull:T0.pull|0,swp:T0.swp|0,ham:T0.ham|0,heavy:!!T0.heavy,colossus:!!T0.colossus,anchor:!!T0.anchor,prism:!!T0.prism,dug:T0.dug||'',g:0,f:0,pr:null,i:-1,mode:'normal'};
+ root.k=sk(root);root.f=hs(root);best.set(root.k,0);push(root);
+ while(open.length){
+  const nd=pop();if(best.get(nd.k)<nd.g)continue;
+  if(lim&&nd.f>lim)continue;
+  if(done(nd)){const p=[],modes=[];for(let c=nd;c.pr;c=c.pr){p.push(c.i);modes.push(c.mode||'normal')}p.reverse();modes.reverse();return{n:nd.g,first:p.length?p[0]:null,path:p,modes,firstMode:modes[0]||'normal'}}
   if(best.size>cap)return null;
   for(let i=0;i<4;i++){
-   const T={__proto__:base,bx:nd.bx.map(a=>a.slice()),px:nd.px,py:nd.py,gate:nd.gate,wc:nd.wc,n:nd.n};
-   if(!sstep(T,i))continue;
-   T.k=sk(T);T.g=nd.g+1;T.pr=nd;T.i=i;
-   if(best.has(T.k)&&best.get(T.k)<=T.g)continue;
-   best.set(T.k,T.g);const h=T.g+hs(T);(open[h]=open[h]||[]).push(T);
+   const[dx,dy]=DR[i],tx=nd.px+dx,ty=nd.py+dy,bi=nd.bx.findIndex(b=>b[0]==tx&&b[1]==ty),b=bi>=0?nd.bx[bi]:null;
+   let modes=['normal'];
+   if(nd.m[ty]&&nd.m[ty][tx])modes=(nd.ham>0&&tx>0&&ty>0&&tx<W-1&&ty<T0.H-1)?['hammer']:[];
+   else if(sol(nd,tx,ty)||!aok(nd,tx,ty,i))modes=[];
+   if(modes.length&&b&&b[2]!=3&&(nd.swp|0)>0&&!nd.ar[nd.py][nd.px])modes.push('swap');
+   if(modes.length&&((!b)||(b&&b[2]==3))&&(nd.pull|0)>0&&nd.bx.some(v=>v[0]==nd.px-dx&&v[1]==nd.py-dy)&&aok(nd,nd.px,nd.py,i))modes.push('pull');
+   for(const mode of modes){
+    const T={__proto__:base,m:nd.m,bx:nd.bx.map(a=>a.slice()),px:nd.px,py:nd.py,gate:nd.gate,wc:nd.wc,n:nd.n,pull:nd.pull,swp:nd.swp,ham:nd.ham,heavy:nd.heavy,colossus:nd.colossus,anchor:nd.anchor,prism:nd.prism,dug:nd.dug||''};
+    if(!sstep(T,i,mode))continue;
+    T.k=sk(T);T.g=nd.g+(T.xc||1);T.f=T.g+hs(T);T.pr=nd;T.i=i;T.mode=mode;
+    if(best.has(T.k)&&best.get(T.k)<=T.g)continue;
+    best.set(T.k,T.g);push(T);
+   }
   }
- }}
+ }
  return null;
 }
-function gen2(d,M){
- const l=gen(d,M),gh=M.includes('ghost'),cr=M.includes('crumble'),keep=M.filter(k=>k!='ghost'&&k!='crumble');
- let av=[['ice',3],['crack',4],['tele',4],['sw',5],['spk',10]].filter(a=>d>=a[1]).map(a=>a[0]).sort(()=>Math.random()-.5).slice(0,1+(d>=9)+(d>=14));
- if(!gh&&!cr&&Math.random()<.3)av=[];
+function gen3(d,M,R){
+ R=R||{};const l=gen(d,M),gh=M.includes('ghost'),cr=M.includes('crumble'),keep=M.filter(k=>k!='ghost'&&k!='crumble');
+ let av=[['ice',2],['crack',3],['tele',3],['sw',4],['spk',7],['mud',2]].filter(a=>d>=a[1]).map(a=>a[0]).sort(()=>Math.random()-.5).slice(0,1+(d>=8));
+ if(!gh&&!cr&&Math.random()<.12)av=[];if((M.includes('muddy')||R.boots)&&!av.includes('mud'))av.push('mud');
  let swc=[];
  if(av.includes('sw')){
   const T0=()=>({m:l.m,ar:l.ar,W:l.W,goals:l.goals,tl:null,tel:[],lim:0,bx:l.bx.map(b=>b.slice()),px:l.px,py:l.py,gate:1,wc:{},n:0}),r0=solveX(T0(),4e4);
@@ -339,7 +377,7 @@ function gen2(d,M){
   if(!swc.length)av=av.filter(f=>f!='sw');else av.sort((x,y)=>(y=='sw')-(x=='sw'));
  }
  if(!av.length&&!gh&&!cr)return l;
- for(let a=0;a<6;a++){
+ for(let a=0;a<3;a++){
   const tl=l.m.map(r=>r.map(()=>0)),tel=[],bx=l.bx.map(b=>b.slice()),used=new Set([l.px+','+l.py]);
   l.goals.forEach(q=>used.add(q[0]+','+q[1]));l.bx.forEach(q=>used.add(q[0]+','+q[1]));
   const fr=[];l.m.forEach((r,y)=>r.forEach((v,x)=>!v&&!l.ar[y][x]&&!used.has(x+','+y)&&fr.push([x,y])));
@@ -350,19 +388,45 @@ function gen2(d,M){
    else if(f=='crack')for(let k=0,n=2+(Math.random()*3|0);k<n;k++){const c=fr.pop();if(c)tl[c[1]][c[0]]=5}
    else if(f=='tele')for(let k=0;k<1+(d>=12);k++){const p=fr.pop(),q=fr.pop();if(p&&q){tl[p[1]][p[0]]=4;tl[q[1]][q[0]]=4;tel.push([p,q])}}
    else if(f=='sw'){const[sc,gc]=swc[a%swc.length];[sc,gc].forEach(c=>{const j=fr.findIndex(e=>e[0]==c[0]&&e[1]==c[1]);if(j>=0)fr.splice(j,1)});tl[gc[1]][gc[0]]=3;tl[sc[1]][sc[0]]=2;sw=1}
+   else if(f=='mud')for(let k=0,n=(M.includes('muddy')||R.boots?6:3)+(Math.random()*3|0);k<n;k++){const c=fr.pop();if(c)tl[c[1]][c[0]]=8}
    else if(f=='spk')for(let k=0,n=2+(Math.random()*3|0);k<n;k++){const c=fr.pop();if(c)tl[c[1]][c[0]]=6+(Math.random()*2|0)}
   });
   if(gh)for(let k=0;k<1+(d>=10);k++){const c=fr.pop();if(c)bx.push([c[0],c[1],3])}
-  const mkT=()=>({m:l.m,ar:l.ar,W:l.W,goals:l.goals,tl,tel,lim:0,bx:bx.map(b=>b.slice()),px:l.px,py:l.py,gate:sw?0:1,wc:{},n:0}),r=solveX(mkT(),4e4);
+  const mkT=()=>({m:l.m,ar:l.ar,W:l.W,goals:l.goals,tl,tel,lim:0,H:l.H,bx:bx.map(b=>b.slice()),px:l.px,py:l.py,gate:sw?0:1,wc:{},n:0,...R}),r=solveX(mkT(),4e4);
   if(!r){if(!av.length)break;continue}
   let lim=0;
   if(cr){const T=mkT(),cn={};let mx=1;r.path.forEach(i=>{const k=T.py*l.W+T.px;cn[k]=(cn[k]|0)+1;mx=Math.max(mx,cn[k]);sstep(T,i)});lim=Math.max(2,mx+1)}
-  return{...l,tl,tel,bx,gate:sw?0:1,wc:{},lim,n:0,xt:1,opt:r.n};
+  const finalT={m:l.m,ar:l.ar,W:l.W,H:l.H,goals:l.goals,tl,tel,lim,bx:bx.map(b=>b.slice()),px:l.px,py:l.py,gate:sw?0:1,wc:{},n:0,...R};
+  // A generated route is not enough: require the same search used by Hint to
+  // find a solution for the final tile/ghost/crumble layout within its limit.
+  const cap=8e4,checked=solveX(finalT,cap);
+  if(!checked)continue;
+  const replay={...finalT,m:finalT.m.map(row=>row.slice()),bx:finalT.bx.map(b=>b.slice()),wc:{}};
+  let valid=true;
+  for(let z=0;z<checked.path.length;z++)if(!sstep(replay,checked.path[z],checked.modes[z]||'normal')){valid=false;break}
+  const solved=replay.bx.every(([x,y,t])=>t==3||l.goals.some(q=>q[0]==x&&q[1]==y&&q[2]==t));
+  if(!valid||!solved)continue;
+  return{...l,tl,tel,bx,gate:sw?0:1,wc:{},lim,n:0,xt:1,opt:checked.n};
  }
  return{...l,M2:keep};
 }
+function gen2(d,M,R){
+ R=R||{};const nd=[];
+ if(R.ham>0)nd.push('ham');if(R.pull>0)nd.push('pull');if(R.swp>0)nd.push('swp');if(R.heavy||R.colossus)nd.push('heavy');if(R.prism)nd.push('prism');if(R.boots)nd.push('boots');
+ if(!nd.length)return gen3(d,M,R);
+ let best=null,bs=-1;
+ for(let t=0;t<8;t++){
+  const l=gen3(d,M,R),T={m:l.m,ar:l.ar,W:l.W,H:l.H,goals:l.goals,tl:l.tl||null,tel:l.tel||[],lim:l.lim||0,bx:l.bx.map(b=>b.slice()),px:l.px,py:l.py,gate:l.gate===undefined?1:l.gate,wc:{},n:0,...R},r=solveX(T,6e4);
+  if(!r)continue;
+  let sc=0;
+  nd.forEach(k=>{const U={...T,bx:T.bx.map(b=>b.slice())};if(k=='heavy')U.heavy=U.colossus=false;else if(k=='prism'||k=='boots')U[k]=false;else U[k]=0;
+   if(!solveX(U,6e4,r.n+Math.ceil(r.n*.1)+1))sc++});
+  if(sc>bs){bs=sc;best={...l,opt:r.n};if(sc==nd.length)break}
+ }
+ return best||gen3(d,M,R);
+}
 let WK=null,wid=0;const wcb={};
-try{WK=new Worker(URL.createObjectURL(new Blob([`const DR=${JSON.stringify(DR)};let S={},DF=[];\n${solve}\n${gen}\n${[lm,ho,sol,aok,fxs,trg,wear,sstep,solveX,gen2].join('\n')}\nonmessage=e=>{const q=e.data;S={df:q.df};DF=q.DF;postMessage({id:q.id,r:q.k=='gen'?gen2(q.d,q.M):q.k=='sx'?solveX(q.T,q.cap):solve(q.m,q.ar,q.gl,q.bx,q.px,q.py,q.cap)})}`],{type:'text/javascript'})));
+try{WK=new Worker(URL.createObjectURL(new Blob([`const DR=${JSON.stringify(DR)};let S={},DF=[];\n${solve}\n${gen}\n${[lm,ho,sol,aok,fxs,trg,wear,sstep,solveX,gen3,gen2].join('\n')}\nonmessage=e=>{const q=e.data;S={df:q.df};DF=q.DF;postMessage({id:q.id,r:q.k=='gen'?gen2(q.d,q.M,q.R):q.k=='sx'?solveX(q.T,q.cap):solve(q.m,q.ar,q.gl,q.bx,q.px,q.py,q.cap)})}`],{type:'text/javascript'})));
 WK.onmessage=e=>{const f=wcb[e.data.id];delete wcb[e.data.id];f&&f(e.data.r)};
 WK.onerror=()=>{WK=null;Object.keys(wcb).forEach(k=>{const f=wcb[k];delete wcb[k];f(undefined)})}}catch(e){WK=null}
 function job(q,sync){return new Promise(res=>{if(!WK)return res(sync());const id=++wid;wcb[id]=r=>res(r===undefined?sync():r);try{WK.postMessage({...q,id,df:S.df,DF})}catch(e){delete wcb[id];res(sync())}})}
@@ -375,10 +439,11 @@ function load(){
   const d=S.d,D=DF[S.df],boss=d%5==0;let M=[];
   M=(S.door||[]).slice();
   if(cnt('dusk')&&!M.includes('fog'))M.push('fog');
-  let l=await job({k:'gen',d,M},()=>gen2(d,M));for(let t=0;t<2&&my==LT&&l.M2&&l.M2.length<M.length;t++)l=await job({k:'gen',d,M},()=>gen2(d,M));if(my!=LT)return;if(l.M2)M=l.M2;const opt=l.opt,[sf,sa]=D.f;
+  const RF={ham:2*cnt('ham')+4*cnt('titan')+8*cnt('drill'),pull:cnt('fury')?99:2*cnt('pull')+3*cnt('rope'),swp:cnt('swap'),heavy:cnt('heavy')>0,colossus:cnt('colossus')>0,anchor:cnt('anchor')>0,prism:cnt('prism')>0,boots:cnt('swamp')>0};
+  let l=await job({k:'gen',d,M,R:RF},()=>gen2(d,M,RF));if(my!=LT)return;if(l.M2)M=l.M2;const opt=l.opt,[sf,sa]=D.f;
   let bg=opt!=null?(M.includes('rush')?opt+(S.df<2?2:0):opt+Math.round(opt*sf)+sa):l.par+[8,4,2,0][S.df];
   bg=Math.round(bg*(1+.15*cnt('shoe')));
-  L={...l,M,boss,budget:bg,left:bg,n:0,ham:2*cnt('ham')+4*cnt('titan'),pull:cnt('fury')?99:2*cnt('pull'),swp:cnt('swap'),ech:l.bx.filter(b=>b[2]!=3&&l.goals.some(q=>q[0]==b[0]&&q[1]==b[1]&&q[2]==b[2])).map(b=>b[0]+','+b[1])};
+  L={...l,M,boss,budget:bg,left:bg,n:0,...RF,ech:l.bx.filter(b=>b[2]!=3&&l.goals.some(q=>q[0]==b[0]&&q[1]==b[1]&&q[2]==b[2])).map(b=>b[0]+','+b[1])};
   if(!S.rer)S.hint+=cnt('seer');S.rer=0;track();L0=JSON.stringify(L);saveRun();H=[];armed=wa=false;VP=null;layout();hide();
   say((M.length?M.map(k=>MODS[k][0]+': '+MODS[k][1]+(k=='crumble'&&L.lim?' (limit '+L.lim+')':'')).join(' · '):'Push every box onto a goal of the same color.')+(L.tl&&L.tl.some(r=>r.includes(3))?' · Push a box onto the plate to open the gate':''));
   draw();snd(330);
@@ -396,13 +461,17 @@ function mv(dx,dy){
   if(!b)ok=1;
   else if(b[2]==3){L.bx.splice(L.bx.indexOf(b),1);ok=gone=1}
   else if(wa&&(L.swp|0)>0&&!L.ar[py][px]){b[0]=px;b[1]=py;ok=swapped=1}
-  else{const qx=tx+dx,qy=ty+dy,b2=box(qx,qy);
-   if(free(qx,qy)&&A(qx,qy)){b[0]=qx;b[1]=qy;ok=pushed=1;mvd=[b]}
-   else if(b2&&cnt('heavy')&&A(qx,qy)&&free(qx+dx,qy+dy)&&A(qx+dx,qy+dy)){b2[0]+=dx;b2[1]+=dy;b[0]=qx;b[1]=qy;ok=pushed=1;mvd=[b2,b]}}
+  else{
+    const chain=[];let cx=tx,cy=ty,cb;while((cb=box(cx,cy))){chain.push(cb);cx+=dx;cy+=dy}
+    const max=cnt('colossus')?3:(cnt('heavy')?2:1);
+    if(chain.length<=max&&free(cx,cy)&&A(cx,cy)&&chain.every(q=>A(q[0]+dx,q[1]+dy))){
+     chain.slice().reverse().forEach(q=>{q[0]+=dx;q[1]+=dy;mvd.push(q)});ok=pushed=1;
+    }
+   }
  }
  if(!ok){shake();snd(100,.08);vib(15);if(L.ar[ty]&&L.ar[ty][tx]&&L.ar[ty][tx]!=i+1)say('One-way arrow: you can only enter along the arrow');return}
  if(armed&&!pushed&&!hit&&!swapped&&L.pull>0&&A(px,py)){const pb=box(px-dx,py-dy);if(pb){pb[0]=px;pb[1]=py;trg(L,pb);L.pull--;armed=false;pulled=1}}
- mvd.forEach(b=>{fxs(L,b,i,0);trg(L,b)});if(swapped){const sb=box(px,py);fxs(L,sb,(i+2)%4,0);trg(L,sb);L.swp--;wa=false}const e=[tx,ty];fxs(L,e,i,1);wear(L,px,py);L.px=e[0];L.py=e[1];L.left--;L.n=(L.n|0)+1;H.push(snap);
+ mvd.forEach(b=>{fxs(L,b,i,0);trg(L,b)});if(swapped){const sb=box(px,py);fxs(L,sb,(i+2)%4,0);trg(L,sb);L.swp--;wa=false}const e=[tx,ty];fxs(L,e,i,1);wear(L,px,py);L.px=e[0];L.py=e[1];L.left-=1+(L.tl&&L.tl[e[1]][e[0]]==8&&!cnt('swamp')?1:0);L.n=(L.n|0)+1;H.push(snap);
  if(hit){say('Crash! The wall shattered');snd(90,.15,'sawtooth');burst(tx,ty,14,['#7a789c','#4a4866']);vib(30)}
  else if(pulled){say('Pull!');snd(520);burst(px,py,6,['#f6efdc'])}
  else if(swapped){say('Swap!');snd(700,.08);burst(px,py,8,['#e58fd0','#f6efdc'])}
@@ -413,7 +482,7 @@ function mv(dx,dy){
  if(ho(L,px,py)){say('The floor crumbled!');snd(70,.2,'sawtooth');burst(px,py,10,['#cbbb8e','#2a1f1a'])}
  if(cnt('echo')){L.ech=L.ech||[];let er=0;L.bx.forEach(b=>{if(b[2]!=3&&L.goals.some(q=>q[0]==b[0]&&q[1]==b[1]&&q[2]==b[2])){const k=b[0]+','+b[1];if(!L.ech.includes(k)){L.ech.push(k);er++}}});if(er){L.left+=3*er;say('Echo! +'+3*er+' steps');snd(880,.08,'sine')}}
  if(L.left<=5&&L.left>0)say('Almost out of steps!');
- if(L.bx.every(b=>b[2]==3||L.goals.some(q=>q[0]==b[0]&&q[1]==b[1]&&q[2]==b[2]))){win();return}
+ if(L.bx.every(b=>b[2]==3||L.goals.some(q=>q[0]==b[0]&&q[1]==b[1]&&(cnt('prism')||q[2]==b[2])))){win();return}
  draw();
  if(L.left<=0)out();
 }
@@ -440,9 +509,13 @@ function undo(){
 async function hint(){
  if(L.won||S.over||!o.hidden)return;
  if(S.hint<1)return say('No hints left');
- say('Thinking…');const HT=JSON.parse(JSON.stringify(L)),sv=T=>job({k:'sx',T,cap:DF[S.df].cap},()=>solveX(JSON.parse(JSON.stringify(T)),DF[S.df].cap));let r=await sv(HT);if(!r&&HT.lim)r=await sv({...HT,lim:0});
- if(!r)return say('Cannot solve it: this position may be unsolvable');
- S.hint--;say('Hint: move '+['up','right','down','left'][r.first]+' first ('+r.n+' steps left at minimum)');draw();
+ say('Thinking…');const HT=JSON.parse(JSON.stringify(L));HT.heavy=cnt('heavy')>0;HT.colossus=cnt('colossus')>0;HT.anchor=cnt('anchor')>0;HT.prism=cnt('prism')>0;HT.boots=cnt('swamp')>0;HT.pull=L.pull|0;HT.swp=L.swp|0;HT.ham=L.ham|0;
+ const cap=Math.max(DF[S.df].cap,42e4),sv=T=>job({k:'sx',T,cap},()=>solveX(JSON.parse(JSON.stringify(T)),cap));const r=await sv(HT);
+ if(!r)return say('No valid solution was found from this position. Restart the floor if a box is trapped.');
+ if(r.first==null)return say('This puzzle is already solved.');
+ let di=r.first;if(L.M.includes('mirror')){if(di==1)di=3;else if(di==3)di=1}
+ const mode=r.firstMode||'normal',action=mode=='pull'?'Enable Pull, then ':mode=='swap'?'Enable Swap, then ':mode=='hammer'?'Break the wall: ':'';
+ S.hint--;say('Hint: '+action+'move '+['up','right','down','left'][di]+' ('+r.n+' steps to solve from here)');draw();
 }
 function pullMode(){if(L.pull>0){armed=!armed;if(armed)wa=false;say(armed?'Pull mode: step one tile away from the box':'');draw()}else say('No pulls left on this level')}
 function swapMode(){if(L.won||S.over||!o.hidden||!cnt('swap'))return;if((L.swp|0)>0){wa=!wa;if(wa)armed=false;say(wa?'Swap mode: walk into a box to trade places with it':'');draw()}else say('No swaps left on this level')}
@@ -453,21 +526,24 @@ function dice(){
  S.dd=1;S.rer=1;snd(520,.08);setTimeout(()=>snd(780,.12),90);vib(30);load();
 }
 function gain(id){if(id=='life')S.life++;else if(id=='undo')S.undo+=3;else if(id=='shield')S.sh++;else if(id=='luck')S.rr+=2;else if(id=='glass'){S.undo+=6;S.life=Math.max(1,S.life-1)}else S.rel.push(id)}
-function give(r){const p=POOL.filter(x=>x.r==r&&!(x.u&&cnt(x.id)));if(!p.length)return 0;gain(p[Math.random()*p.length|0].id);return 1}
+function give(r){const p=POOL.filter(x=>!x.lootOff&&x.r==r&&!(x.u&&cnt(x.id)));if(!p.length)return 0;gain(p[Math.random()*p.length|0].id);return 1}
 function choose(){
- const c=POOL.filter(r=>!(r.u&&cnt(r.id))),p=[];
+ const c=POOL.filter(r=>!r.lootOff&&!(r.u&&cnt(r.id))),p=[];
  while(p.length<3&&c.length>p.length){const w=c.filter(x=>!p.includes(x));let t=w.reduce((s,x)=>s+RW[x.r],0)*Math.random();for(const x of w){t-=RW[x.r];if(t<=0){p.push(x);break}}}
  S.pool=p;rc();
 }
 function rc(){
- ov(`<h2>Floor ${S.d} cleared!</h2><p>${'★'.repeat(S.st)}${'☆'.repeat(3-S.st)}  Coins +${S.gain}${S.dbn?' (door +'+S.dbn+')':''}${L.boss?'  Boss reward: +1 life':''}</p><p>Choose a relic</p><div class="cards">`+S.pool.map(r=>`<button class="card r${r.r}" onclick="pick('${r.id}')"><b>${ico(r.id)} ${r.n} [${RC[r.r]}]</b><span>${r.t}</span></button>`).join('')+`</div><div class="row"><button onclick="rr()">Reroll (${S.rr>0?'free '+S.rr:'2 coins'})</button></div><p>${ic('bag')} ${S.coin}  ${S.note}</p>`);
+ ov(`<h2>Floor ${S.d} cleared!</h2><p>${'★'.repeat(S.st)}${'☆'.repeat(3-S.st)}  Coins +${S.gain}${L.boss?'  Boss reward: +1 life':''}</p><p>Choose a relic</p><div class="cards">`+S.pool.map(r=>`<button class="card r${r.r}" onclick="pick('${r.id}')"><b>${ico(r.id)} ${r.n} [${RC[r.r]}]</b><span>${r.t}</span></button>`).join('')+`</div><div class="row"><button onclick="rr()">Reroll (${S.rr>0?'free '+S.rr:'2 coins'})</button></div><p>${ic('bag')} ${S.coin}  ${S.note}</p>`);
 }
 function rr(){if(S.rr>0)S.rr--;else if(S.coin>=2)S.coin-=2;else{S.note='Not enough coins';return rc()}S.note='';choose()}
 function door(){
- const d=S.d,boss=d%5==0,per=cnt('pact')?3:1;let M;
- if(boss)M=['maze','crowd'];else M=Object.keys(MODS).sort(()=>Math.random()-.5).slice(0,1+(S.df>=2&&d>=6)+(S.df==3&&d>=8)+cnt('pact'));
+ const d=S.d,boss=d%5==0,per=cnt('pact')?3:1;let M=[];
+ const pool=Object.keys(MODS).sort(()=>Math.random()-.5);
+ const count=Math.min(pool.length-1,3+(d>=3)+(d>=6)+(d>=9)+(S.df>=1)+(S.df>=2)+cnt('pact'));
+ if(boss){M=['maze','crowd'];const extras=pool.filter(k=>!M.includes(k));M.push(...extras.slice(0,1+(S.df>=1)+(S.df>=2)+(d>=10)+cnt('pact')))}
+ else M=pool.slice(0,count);
  S.door=M;
- ov(`<h2>Floor ${d}${boss?' · BOSS':''}</h2><p>The door ahead is sealed. There is no other way.</p><div class="cards">${M.map(k=>`<div class="dr"><b>${MODS[k][0]}</b><span>${MODS[k][1]}</span></div>`).join('')}</div><p>${boss?'Boss reward: +1 life':'Door bonus: +'+per+' coin'+(per>1?'s':'')+' per seal'}</p><button onclick="load()">Open the door</button>`);
+ ov(`<h2>Floor ${d}${boss?' · BOSS':''}</h2><p><b>Next floor conditions</b></p><div class="cards">${M.map(k=>`<div class="dr"><b>${MODS[k][0]}</b><span>${MODS[k][1]}</span></div>`).join('')}</div><p>${boss?'Boss reward: +1 life':'Condition bonus: +'+per+' coin'+(per>1?'s':'')+' per condition'}</p><button onclick="load()">Enter floor</button>`);
 }
 function pick(id){gain(id);S.d++;if(S.d%3==0)S.undo++;S.note='';if(S.d%4==0)shop();else door()}
 function shop(){tk=11;mus();
@@ -488,8 +564,8 @@ function help(t){
  t=typeof t=='string'?t:'rules';
  const tabs=[['rules','Rules'],['items','Items'],['keys','Controls']].map(([k,n])=>`<button class="tb${k==t?' on':''}" onclick="help('${k}')">${n}</button>`).join(''),
  body={
-  rules:`<p style="text-align:left">Push every box onto a goal of the same color. Boxes can only be pushed, never pulled. Yellow arrow tiles can only be entered in the direction of the arrow (boxes too). Steps are limited; running out costs you a heart. Undo rewinds a move but costs 2 steps. From floor 2 on, every floor has a sealed door: its modifiers are forced on you, and each seal pays bonus coins. Every level has its optimal solution calculated: stars are rated by how close you get to it, stars turn into coins, and there is a shop every 4 floors. Floors 5, 10 and so on are boss floors.</p><p style="text-align:left">${Object.values(MODS).map(m=>'<b>'+m[0]+'</b> '+m[1]).join('<br>')}</p>`,
-  items:`<p>Relics &amp; items: tap one to see what it does</p><div class="row">`+POOL.map(r=>`<button class="ib r${r.r}" data-i="${r.id}" onclick="hi('${r.id}')">${ico(r.id)} ${r.n}</button>`).join('')+`</div><div id="hd" class="hd">Nothing selected.</div>`,
+  rules:`<p style="text-align:left">Push every box onto a goal of the same color. Boxes can only be pushed, never pulled. Yellow arrow tiles can only be entered in the direction of the arrow (boxes too). Steps are limited; running out costs you a heart. Undo rewinds a move but costs 2 steps. Brown mud tiles cost 2 steps to walk onto. Every new floor lists its conditions before you enter; more conditions appear as you descend, and each condition grants bonus coins. Every level has its optimal solution calculated: stars are rated by how close you get to it, stars turn into coins, and there is a shop every 4 floors. Floors 5, 10 and so on are boss floors.</p><p style="text-align:left">${Object.values(MODS).map(m=>'<b>'+m[0]+'</b> '+m[1]).join('<br>')}</p>`,
+  items:`<p>Relics &amp; items: tap one to see what it does</p><div class="row">`+POOL.filter(r=>!r.lootOff).map(r=>`<button class="ib r${r.r}" data-i="${r.id}" onclick="hi('${r.id}')">${ico(r.id)} ${r.n}</button>`).join('')+`</div><div id="hd" class="hd">Nothing selected.</div>`,
   keys:`<p style="text-align:left"><b>Keyboard:</b> Arrow keys or WASD to move · Z undo · R restart · E pull mode · X swap · H hint · G dice.</p><p style="text-align:left"><b>Touch:</b> swipe on the board or use the D-pad.</p><p style="text-align:left"><b>Shape marks:</b> When boxes come in several colors, each color pair also carries a shape mark (+, ×, =) so you can match them without relying on color.</p>`
  }[t];
  ov(`<h2>How to Play</h2><div class="row">${tabs}</div>${body}<button onclick="${S.over?'start()':'hide()'}">Continue</button>`);
@@ -509,7 +585,7 @@ function start(){
 }
 function resume(){
  const r=savedRun();if(!r)return start();
- S=r.S;S.over=0;L0=r.L0;L=JSON.parse(L0);H=[];armed=wa=false;VP=null;tk=-1;track();layout();hide();
+ S=r.S;S.over=0;S.rel=(S.rel||[]).filter(id=>POOL.some(p=>p.id==id));L0=r.L0;L=JSON.parse(L0);H=[];armed=wa=false;VP=null;tk=-1;track();layout();hide();
  say('Run restored. This floor was restarted from the beginning.');draw();
 }
 function go(i){tk=-1;newRun(i)}
@@ -518,13 +594,14 @@ function draw(){
  $('lv').innerHTML=`<b>${DF[S.df].n} · Floor ${S.d}${L.boss?' · BOSS':''}</b>${L.M.length&&!L.boss?' · '+L.M.map(k=>MODS[k][0]).join(', '):''}`;
  $('hud').innerHTML=[['life',S.life],['undo',S.undo],['shoe',L.left],['pull',L.pull],['ham',L.ham],['shield',S.sh],['scout',S.hint],['bag',S.coin]].filter(([k,v],i)=>v>0||i<3).map(([k,v])=>`<span class="${k=='shoe'&&L.left<=5?'low':''}">${ic(k)} ${v>90?'∞':v}</span>`).join('');
  $('rel').innerHTML=[...new Set(S.rel)].map(id=>`<button class="ib r${POOL.find(p=>p.id==id).r}" onclick="rinfo('${id}')">${ico(id)}${cnt(id)>1?'×'+cnt(id):''} ${POOL.find(p=>p.id==id).n}</button>`).join('');
- $('bp').hidden=!(cnt('pull')||cnt('fury'));$('bp').textContent='Pull ×'+(L.pull>90?'∞':L.pull);$('bp').classList.toggle('on',armed);$('bu').textContent='Undo ×'+S.undo+(UC()&&!cnt('fury')?' −'+UC():'');$('bt').hidden=S.hint<1;$('bt').textContent='Hint ×'+S.hint;$('bd').hidden=!cnt('dice')||!!S.dd;$('bw').hidden=!cnt('swap');$('bw').textContent='Swap ×'+(L.swp|0);$('bw').classList.toggle('on',wa);
+ $('bp').hidden=!(cnt('pull')||cnt('fury')||cnt('rope'));$('bp').textContent='Pull ×'+(L.pull>90?'∞':L.pull);$('bp').classList.toggle('on',armed);$('bu').textContent='Undo ×'+S.undo;$('bt').hidden=S.hint<1;$('bt').textContent='Hint ×'+S.hint;$('bd').hidden=!cnt('dice')||!!S.dd;$('bw').hidden=!cnt('swap');$('bw').textContent='Swap ×'+(L.swp|0);$('bw').classList.toggle('on',wa);
 }
 const GL=[[[1,0],[0,1],[1,1],[2,1],[1,2]],[[0,0],[2,0],[1,1],[0,2],[2,2]],[[0,0],[1,0],[2,0],[0,2],[1,2],[2,2]]];
 function tile(x,y){
  const t=L.tl?L.tl[y][x]:0,w=((L.wc&&L.wc[y*L.W+x])|0),l=lm(L,x,y),X=x*8,Y=y*8;
  if(ho(L,x,y)){g.fillStyle='#140e1e';g.fillRect(X,Y,8,8);return}
  if(t==1)g.drawImage(SP.ice,X,Y);
+ else if(t==8)g.drawImage(SP.mud,X,Y);
  else if(t==2)g.drawImage(L.gate?SP.swt1:SP.swt,X,Y);
  else if(t==3){if(!L.gate)g.drawImage(SP.gate,X,Y)}
  else if(t==4){const i=L.tel.findIndex(q=>q.some(c=>c[0]==x&&c[1]==y));g.drawImage(i==1?SP.tele2:SP.tele,X,Y)}
@@ -544,7 +621,7 @@ function frame(t){
   else{g.fillStyle=(x+y)%2?'#d4c59a':'#cbbb8e';g.fillRect(x*8,y*8,8,8);tile(x,y);const a=L.ar[y][x];if(a){g.save();g.globalAlpha=.8;g.translate(x*8+4,y*8+4);g.rotate((a-1)*Math.PI/2);g.drawImage(SP.arr,-4,-4);g.restore()}}
  }
  L.goals.forEach(([x,y,k])=>{g.drawImage(SP['goal'+(k||'')],x*8,y*8);if(mk)gly(k||0,x*8+2,y*8+2,'#2a1f1a')});
- L.bx.forEach((b,i)=>{const X=Math.round(VP.b[i][0]*8),Y=Math.round(VP.b[i][1]*8),bt=b[2]==3?0:(b[2]||0);g.drawImage(SP['box'+(bt||'')],X,Y);if(mk)gly(bt,X+2,Y+2,'#f6efdc');if(L.goals.some(q=>q[0]==b[0]&&q[1]==b[1]&&q[2]==b[2])){g.fillStyle='#7be35a';mk?g.fillRect(X+1,Y+1,2,2):g.fillRect(X+3,Y+3,2,2)}});
+ L.bx.forEach((b,i)=>{const X=Math.round(VP.b[i][0]*8),Y=Math.round(VP.b[i][1]*8),bt=b[2]==3?0:(b[2]||0);g.drawImage(SP['box'+(bt||'')],X,Y);if(mk)gly(bt,X+2,Y+2,'#f6efdc');if(L.goals.some(q=>q[0]==b[0]&&q[1]==b[1]&&(cnt('prism')||q[2]==b[2]))){g.fillStyle='#7be35a';mk?g.fillRect(X+1,Y+1,2,2):g.fillRect(X+3,Y+3,2,2)}});
  g.drawImage(SP.me,Math.round(VP.p[0]*8),Math.round(VP.p[1]*8)+(Math.sin(t/180)>0?0:1));
  P=P.filter(q=>q.l>0);P.forEach(q=>{q.x+=q.vx;q.y+=q.vy;q.vy+=.06;q.l--;g.fillStyle=q.c;g.fillRect(q.x|0,q.y|0,1,1)});
  if(L.M.includes('fog')&&!cnt('scout')){const fx=Math.round(VP.p[0]),fy=Math.round(VP.p[1]);for(let y=0;y<L.H;y++)for(let x=0;x<L.W;x++){const d=Math.max(Math.abs(x-fx),Math.abs(y-fy));if(d>3){g.globalAlpha=1;g.fillStyle='#140e1e';g.fillRect(x*8,y*8,8,8)}else if(d==3){g.globalAlpha=.5;g.fillStyle='#140e1e';g.fillRect(x*8,y*8,8,8)}}g.globalAlpha=1;
