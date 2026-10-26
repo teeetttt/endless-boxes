@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8"><link rel="icon" type="image/svg+xml" sizes="any" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔥</text></svg>"/>
+<html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Endless Boxes</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%A6%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap">
 <style>
 :root{--bg:#e9dfc4;--fg:#2a1f1a;--card:#f8f0da;--ln:#2a1f1a;--ac:#d9433b;--mut:#6b5a48;color-scheme:light dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -55,9 +56,10 @@ canvas{border-width:3px}
 #ov{padding:8px}.box{padding:10px;gap:7px}.box h2{font-size:18px}.box p{font-size:13px}
 .cards{gap:6px}.cards.two{grid-template-columns:1fr 1fr}.card{padding:6px 10px}.card span{font-size:12px}
 .tb{font-size:13px;padding:4px 10px}
+#bv{width:64px;accent-color:var(--ac);vertical-align:middle;margin:0 2px}
 @media (max-height:620px){.box{gap:5px;padding:8px}.box h2{font-size:16px}.hd{min-height:44px;padding:5px}#ov .ib{font-size:12px;padding:3px 6px}.sm span{padding:0 5px}}
 </style></head><body>
-<header><h1>Endless Boxes</h1><span><button id="bhm">Home</button> <button id="bh">?</button> <button id="bm">Music: On</button> <button id="bs">SFX: On</button> <button id="bn">Next ♪</button></span></header>
+<header><h1>Endless Boxes</h1><span><button id="bhm">Home</button> <button id="bh">?</button> <button id="bm">Music: On</button> <input type="range" id="bv" min="0" max="100" value="70" aria-label="Music volume"> <button id="bs">SFX: On</button> <button id="bn">Next ♪</button></span></header>
 <div id="lv"></div><div id="hud"></div><div id="cw"><canvas id="c"></canvas></div><div id="msg"></div><div id="rel"></div>
 <div id="ctl"><div class="pad"><button data-d="0,-1">↑</button><button data-d="-1,0">←</button><button data-d="0,1">↓</button><button data-d="1,0">→</button></div>
 <div class="act"><button id="bu">Undo</button><button id="bp">Pull</button><button id="br">Restart</button><button id="bt" hidden>Hint</button><button id="bd" hidden>Dice</button></div></div>
@@ -127,7 +129,10 @@ let S={over:1},L={won:1},L0,H=[],armed=false,B={},mm=false,sm=false,AC,VP=null,P
 try{B=JSON.parse(localStorage.getItem('pxsoko2'))||{}}catch(e){}
 const ico=id=>ic((POOL.find(p=>p.id==id)||{}).ic||id),cnt=id=>S.rel.filter(r=>r==id).length;
 const ov=h=>{o.innerHTML='<div class="box">'+h+'</div>';o.hidden=false},hide=()=>o.hidden=true,say=t=>$('msg').textContent=t,vib=n=>navigator.vibrate&&navigator.vibrate(n);
-function snd(f,t=.06,ty='square',v=.05,mu){if(mu?mm:sm)return;try{AC=AC||new AudioContext();if(AC.state!='running'){Promise.resolve(AC.resume()).catch(()=>{});return}const a=AC.createOscillator(),w=AC.createGain();a.type=ty;a.frequency.value=f;w.gain.value=v;w.gain.exponentialRampToValueAtTime(.001,AC.currentTime+t);a.connect(w);w.connect(AC.destination);a.start();a.stop(AC.currentTime+t)}catch(e){}}
+let MB,MV=2.2;
+function mbus(){if(MB)return MB;const d=AC.createDelay(),fb=AC.createGain(),lp=AC.createBiquadFilter(),m=AC.createGain();d.delayTime.value=.25;fb.gain.value=.3;lp.type='lowpass';lp.frequency.value=2200;m.connect(AC.destination);m.connect(d);d.connect(lp);lp.connect(fb);fb.connect(d);lp.connect(AC.destination);return MB=m}
+function mnote(f,t,ty,v,at=.012){if(v<.0003)return;const n=AC.currentTime,w=AC.createGain();w.gain.setValueAtTime(.0001,n);w.gain.exponentialRampToValueAtTime(v*.55,n+at);w.gain.exponentialRampToValueAtTime(.0001,n+t+.06);w.connect(mbus());[-6,6].forEach(c=>{const a=AC.createOscillator();a.type=ty;a.frequency.value=f;a.detune.value=c;a.connect(w);a.start(n);a.stop(n+t+.1)})}
+function snd(f,t=.06,ty='square',v=.05,mu,at){if(mu?mm:sm)return;try{AC=AC||new AudioContext();if(AC.state!='running'){Promise.resolve(AC.resume()).catch(()=>{});return}if(mu){mnote(f,t,ty,v*MV,at);return}const a=AC.createOscillator(),w=AC.createGain();a.type=ty;a.frequency.value=f;w.gain.value=v;w.gain.exponentialRampToValueAtTime(.001,AC.currentTime+t);a.connect(w);w.connect(AC.destination);a.start();a.stop(AC.currentTime+t)}catch(e){}}
 const TR=[
 {n:'Dungeon Crawl',sc:[0,3,5,7,10,12],m:[0,2,4,2,5,4,2,1],b:[0,3,2,4],bd:8,t:240,w:'triangle',v:.035,l:.2},
 {n:'Torch Light',sc:[3,5,7,10,12,15],m:[0,1,2,1,3,2,4,3,5,4,3,2,1,2,0,-1],b:[0,2,3,1],bd:8,t:190,w:'square',v:.02,l:.12},
@@ -145,7 +150,26 @@ const TR=[
 ].map(x=>({...x,f:x.sc.map(q=>220*2**(q/12))}));
 const BOSS=6,MENU=7;let tk=0;
 const toast=t=>{const e=$('tn');e.textContent='♪ '+t;e.classList.add('show');clearTimeout(toast.h);toast.h=setTimeout(()=>e.classList.remove('show'),2200)};
-function mus(){clearInterval(mt);if(mm)return;mi=0;const T=TR[Math.max(tk,0)];if(AC&&AC.state=='running')toast(T.n);mt=setInterval(()=>{const q=mi++,n=T.m[q%T.m.length];if(n>=0)snd(T.f[n],T.l,T.w,T.v,1);if(q%T.bd==0)snd(T.f[T.b[(q/T.bd|0)%T.b.length]]/2,T.l*2,'triangle',T.v*1.2,1)},T.t)}
+function mus(){clearInterval(mt);if(mm)return;mi=0;const T=TR[Math.max(tk,0)];if(AC&&AC.state=='running')toast(T.n);let cur=T.m,ks=0,oc=[];
+ mt=setInterval(()=>{const N=T.m.length,q=mi++,p=q%N,c=q/N|0;
+  if(p==0){
+   if(c>0&&c%2==0)ks=pk([0,0,2,5,7,-2,-5,3]);
+   let a=T.m.slice();
+   if(c>0){
+    const vr=pk([0,1,2,3,4]);
+    if(vr==1){const r=1+(Math.random()*(N-1)|0);a=a.slice(r).concat(a.slice(0,r))}
+    else if(vr==2)a.reverse();
+    else if(vr==3)a=a.map((n,i)=>i%2&&n>=0?Math.min(5,n+2):n);
+    else if(vr==4)a=a.map((n,i)=>i>=N/2&&n>=0?Math.max(0,n-1):n);
+    a=a.map(n=>{const r=Math.random();return n<0?(r<.2?pk([1,2,3,4]):n):r<.25?Math.max(0,Math.min(5,n+pk([-2,-1,1,2]))):r<.33?-1:n});
+   }
+   cur=a;oc=a.map(()=>c>0&&Math.random()<.18?2:1);
+  }
+  const k=2**(ks/12),n=cur[p];
+  if(n>=0){const vel=(p%4==0?1.15:.88)*(.9+Math.random()*.2);snd(T.f[n]*k*oc[p],T.l,T.w,T.v*vel,1)}
+  if(n>=0&&c>0&&Math.random()<.2)snd(T.f[Math.min(5,n+2)]*k*oc[p],T.l,T.w,T.v*.6,1);
+  if(q%T.bd==0){const br=q/T.bd|0;const bn=br>=T.b.length&&Math.random()<.3?pk(T.b):T.b[br%T.b.length];snd(T.f[bn]*k/2,T.l*2,'triangle',T.v*1.2,1);const pd=Math.min(2.6,T.t*T.bd/1000);[0,2].forEach(o=>{const j=bn+o;snd(T.f[j%6]*(j>5?2:1)*k,pd,'sine',T.v*.5,1,.15)})}
+ },T.t)}
 const RND=[0,1,2,3,4,5,8,9,10],ALL=[0,1,2,3,4,5,8,9,10,11,6,12],pk=a=>a[Math.random()*a.length|0];
 const JG={w:[[523,0],[659,90],[784,180],[1047,270,.3]],l:[[392,0],[330,160],[262,320],[165,480,.5]]};
 function jingle(k){JG[k].forEach(([f,d,t])=>setTimeout(()=>snd(f,t||.14,'square',.06,1),d))}
@@ -500,7 +524,10 @@ function frame(t){
  L.bx.forEach((b,i)=>{const X=Math.round(VP.b[i][0]*8),Y=Math.round(VP.b[i][1]*8),bt=b[2]==3?0:(b[2]||0);g.drawImage(SP['box'+(bt||'')],X,Y);if(mk)gly(bt,X+2,Y+2,'#f6efdc');if(L.goals.some(q=>q[0]==b[0]&&q[1]==b[1]&&q[2]==b[2])){g.fillStyle='#7be35a';mk?g.fillRect(X+1,Y+1,2,2):g.fillRect(X+3,Y+3,2,2)}});
  g.drawImage(SP.me,Math.round(VP.p[0]*8),Math.round(VP.p[1]*8)+(Math.sin(t/180)>0?0:1));
  P=P.filter(q=>q.l>0);P.forEach(q=>{q.x+=q.vx;q.y+=q.vy;q.vy+=.06;q.l--;g.fillStyle=q.c;g.fillRect(q.x|0,q.y|0,1,1)});
- if(L.M.includes('fog')&&!cnt('scout')){const fx=Math.round(VP.p[0]),fy=Math.round(VP.p[1]);for(let y=0;y<L.H;y++)for(let x=0;x<L.W;x++){const d=Math.max(Math.abs(x-fx),Math.abs(y-fy));if(d>3){g.globalAlpha=1;g.fillStyle='#140e1e';g.fillRect(x*8,y*8,8,8)}else if(d==3){g.globalAlpha=.5;g.fillStyle='#140e1e';g.fillRect(x*8,y*8,8,8)}}g.globalAlpha=1}
+ if(L.M.includes('fog')&&!cnt('scout')){const fx=Math.round(VP.p[0]),fy=Math.round(VP.p[1]);for(let y=0;y<L.H;y++)for(let x=0;x<L.W;x++){const d=Math.max(Math.abs(x-fx),Math.abs(y-fy));if(d>3){g.globalAlpha=1;g.fillStyle='#140e1e';g.fillRect(x*8,y*8,8,8)}else if(d==3){g.globalAlpha=.5;g.fillStyle='#140e1e';g.fillRect(x*8,y*8,8,8)}}g.globalAlpha=1;
+  if(cnt('compass')){const cc=['#f08a2b','#4fc3d9','#e58fd0','#a9b2c4'],inf=(x,y)=>Math.max(Math.abs(x-fx),Math.abs(y-fy))>=3;
+   L.goals.forEach(([x,y,k])=>{if(!inf(x,y))return;g.fillStyle=cc[k||0];for(let a=2;a<6;a++)for(let b=2;b<6;b++)if(a==2||a==5||b==2||b==5)g.fillRect(x*8+a,y*8+b,1,1)});
+   L.bx.forEach((b,i)=>{if(!inf(Math.round(VP.b[i][0]),Math.round(VP.b[i][1])))return;g.fillStyle=cc[b[2]==3?3:(b[2]||0)];g.fillRect(Math.round(VP.b[i][0]*8)+3,Math.round(VP.b[i][1]*8)+3,2,2)})}}
 }
 addEventListener('keydown',e=>{
  const k=e.key.length==1?e.key.toLowerCase():e.key,K={ArrowUp:[0,-1],w:[0,-1],ArrowDown:[0,1],s:[0,1],ArrowLeft:[-1,0],a:[-1,0],ArrowRight:[1,0],d:[1,0]};
@@ -524,5 +551,7 @@ cv.addEventListener('touchend',e=>{
 addEventListener('contextmenu',e=>e.preventDefault());
 addEventListener('resize',()=>L.m&&layout());
 if(window.ResizeObserver)new ResizeObserver(()=>L.m&&layout()).observe($('cw'));
+const svv=()=>{MV=$('bv').value/100*3.1};try{const sv=localStorage.getItem('pxvol');if(sv!==null)$('bv').value=sv}catch(e){}svv();
+$('bv').oninput=()=>{svv();try{localStorage.setItem('pxvol',$('bv').value)}catch(e){}};$('bv').onchange=()=>$('bv').blur();
 requestAnimationFrame(frame);start();
 </script></body></html>
