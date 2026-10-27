@@ -2,7 +2,7 @@
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Endless Boxes</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%A6%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect x='2' y='2' width='12' height='12' fill='%23c28340'/%3E%3Cpath d='M2 5h12M5 2v12M11 2v12' stroke='%232a1f1a' stroke-width='2'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap">
 <style>
 :root{--bg:#e9dfc4;--fg:#2a1f1a;--card:#f8f0da;--ln:#2a1f1a;--ac:#d9433b;--mut:#6b5a48;color-scheme:light dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -79,8 +79,10 @@ canvas{border-width:3px}
 .pd{font-size:14px!important;line-height:1.5;text-align:left}
 .rt{font-size:12px}
 .dr{flex-direction:row;align-items:center;gap:10px}
-.dr i{font-style:normal;font-size:22px;line-height:1;width:30px;text-align:center;flex:none}
+.dr .ic{width:30px;height:30px;vertical-align:middle;flex:none}
 .dr div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.mc .ic{width:12px;height:12px;vertical-align:-2px}
+.mod-title-icon{width:22px;height:22px;vertical-align:-4px}
 .dr b{font-size:14px}.dr span{font-size:13px;line-height:1.35}
 .dr em{font-style:normal;font-size:11px;color:var(--ac)}
 .cards.dc{grid-template-columns:1fr}
@@ -93,7 +95,7 @@ button.mt{font-size:11px;padding:1px 5px;border-width:2px;box-shadow:0 1px 0 var
 .gh{text-align:left;margin:2px 0 0!important}
 @media (max-width:520px){button.mt{font-size:10px;padding:0 4px}.mc{max-height:42px}}
 </style></head><body>
-<header><h1>Endless Boxes</h1><span><button id="bhm">Home</button> <button id="bh">?</button> <button id="bm">Music: On</button> <input type="range" id="bv" min="0" max="100" value="70" aria-label="Volume"> <button id="bs">SFX: On</button> <button id="bn">Next ♪</button></span></header>
+<header><h1>Endless Boxes</h1><span><button id="bhm">Home</button> <button id="bh">?</button> <button id="bm">Music: On</button> <input type="range" id="bv" min="0" max="100" value="70" aria-label="Volume"> <button id="bs">SFX: On</button> <button id="bn">Next Track</button></span></header>
 <div id="lv"></div><div id="hud"></div><div id="cw"><canvas id="c"></canvas></div><div id="msg"></div><div id="rel"></div>
 <div id="ctl"><div class="pad"><button data-d="0,-1">↑</button><button data-d="-1,0">←</button><button data-d="0,1">↓</button><button data-d="1,0">→</button></div>
 <div class="act"><button id="bu">Undo</button><button id="bp">Pull</button><button id="br">Restart</button><button id="bd" hidden>Dice</button><button id="bw" hidden>Swap</button></div></div>
@@ -128,7 +130,14 @@ spk:['s..s..s.','s..s..s.','ss.ss.ss','ss.ss.ss','sSsSsSsS','SSSSSSSS','kkkkkkkk
 spk0:['........','........','........','........','.k.k.k.k','kkkkkkkk','SSSSSSSS','kkkkkkkk'],
 compass:['..kkkk..','.kwwrwk.','kwwwrwwk','kwwwrwwk','kwwSSwwk','kwwSwwwk','.kwSwwk.','..kkkk..'],
 dice:['kkkkkkkk','kwkwwkwk','kwwwwwwk','kwwkkwwk','kwwkkwwk','kwwwwwwk','kwkwwkwk','kkkkkkkk'],
-mud:['bbBbbBbb','bBbbbbBb','bbbBbbbb','BbbbbBbb','bbbBbbbB','bBbbbbbb','bbbbBbBb','bBbbbbbb']});
+mud:['bbBbbBbb','bBbbbbBb','bbbBbbbb','BbbbbBbb','bbbBbbbB','bBbbbbbb','bbbbBbBb','bBbbbbbb'],
+fog:['........','.ssssss.','ssSssSss','sSssSsss','ssssssss','.ssssss.','........','........'],
+dark:['........','..DDDD..','.DDDDDD.','DDDDDDDD','DDDDDDDD','DDDDDDDD','.DDDDDD.','..DDDD..'],
+rush:['........','..bb....','..bb....','..bbbb..','.bbbbbbk','bbbbBBbk','wwwwwwwk','kkkkkkkk'],
+mirror:['..kkkk..','.kwwrwk.','kwwwrwwk','kwwSSwwk','kwwSSwwk','kwwwrwwk','.kwrwk..','..kkkk..'],
+ghost:['..kkkk..','.kwwwwk.','kwwccwwk','kwwccwwk','kwwwwwwk','kwkwkwk.','kw....wk','.k...k..'],
+swarm:['...kkkk.','..kyyyk.','.kykyyk.','.kkkkkk.','..cccc..','.c....c.','..k..k..','........'],
+seal:['..kkkk..','.kSSSSk.','.kS..Sk.','kkkkkkkk','kSSSSSSk','kSSkSSSk','kSSSSSSk','kkkkkkkk']});
 const SP={},IC={};
 for(const k in ART){const c=document.createElement('canvas');c.width=c.height=8;const x=c.getContext('2d');ART[k].forEach((r,j)=>[...r].forEach((h,i)=>{if(PAL[h]){x.fillStyle=PAL[h];x.fillRect(i,j,1,1)}}));SP[k]=c;IC[k]=c.toDataURL()}
 const ic=k=>`<img class="ic" src="${IC[k]}">`;
@@ -169,25 +178,25 @@ const POOL=[
 {id:'idol',n:'Blind Idol',r:3,u:1,ic:'scout',t:'Every floor gets Blind Boxes (box colors are hidden unless you stand next to them). In return, +3 coins for every floor you clear.'},
 {id:'rust',n:'Rusted Hourglass',r:3,u:1,ic:'undo',t:'+5 undos right away, but every undo costs 2 extra steps.'}];
 const MODS={
-fog:['Fog','You only see 3 tiles around you.','🌫'],
-dark:['Darkness','You only see 2 tiles around you.','🌑'],
-rush:['Rush','No spare steps: only the best route fits (+2 spare steps on Casual and Standard).','⏱'],
-maze:['Maze','Extra walls fill the floor.','🧱'],
-crowd:['Crowded','+1 box on the floor.','📦'],
-mirror:['Mirror','Left and right are swapped (keys, D-pad and swipes).','🪞'],
-crumble:['Crumble','Tiles break after you step off them too many times. Broken tiles become holes.','🪨'],
-ghost:['Ghost Box','A phantom box that looks normal vanishes when you push it. It needs no goal.','👻'],
-muddy:['Muddy','Extra mud tiles: stepping onto mud costs 2 steps.','🟤'],
-swarm:['Swarm','+2 boxes on the floor.','🐝'],
-icy:['Icy','Extra ice tiles: you slide until something stops you.','🧊'],
-spiky:['Spiked','Extra spike tiles pop up and down every step. Raised spikes block the way.','🔺'],
-warp:['Warp','Extra teleport pads: step onto one to jump to its twin.','🌀'],
-seal:['Iron Will','Undo is sealed on this floor.','🔒'],
-costly:['Costly Undo','Every undo costs 4 steps on this floor.','💸'],
-blind:['Blind Boxes','Box colors are hidden unless you stand next to them. Goals stay visible.','🙈'],
-peril:['Peril','Running out of steps costs 2 hearts instead of 1.','💀'],
-amnesia:['Amnesia','Goal markers vanish after your 6th step, so memorize them. Undoing back below 6 steps shows them again.','❓'],
-frail:['Frail Thread','Undo can only rewind your last 3 moves.','🧵']};
+fog:['Fog','You only see 3 tiles around you.','fog'],
+dark:['Darkness','You only see 2 tiles around you.','dark'],
+rush:['Rush','No spare steps: only the best route fits (+2 spare steps on Casual and Standard).','rush'],
+maze:['Maze','Extra walls fill the floor.','wall'],
+crowd:['Crowded','+1 box on the floor.','box'],
+mirror:['Mirror','Left and right are swapped (keys, D-pad and swipes).','mirror'],
+crumble:['Crumble','Tiles break after you step off them too many times. Broken tiles become holes.','crk'],
+ghost:['Ghost Box','A phantom box that looks normal vanishes when you push it. It needs no goal.','ghost'],
+muddy:['Muddy','Extra mud tiles: stepping onto mud costs 2 steps.','mud'],
+swarm:['Swarm','+2 boxes on the floor.','swarm'],
+icy:['Icy','Extra ice tiles: you slide until something stops you.','ice'],
+spiky:['Spiked','Extra spike tiles pop up and down every step. Raised spikes block the way.','spk'],
+warp:['Warp','Extra teleport pads: step onto one to jump to its twin.','tele'],
+seal:['Iron Will','Undo is sealed on this floor.','seal'],
+costly:['Costly Undo','Every undo costs 4 steps on this floor.','bag'],
+blind:['Blind Boxes','Box colors are hidden unless you stand next to them. Goals stay visible.','scout'],
+peril:['Peril','Running out of steps costs 2 hearts instead of 1.','life'],
+amnesia:['Amnesia','Goal markers vanish after your 6th step, so memorize them. Undoing back below 6 steps shows them again.','dice'],
+frail:['Frail Thread','Undo can only rewind your last 3 moves.','undo']};
 const DF=[{n:'Casual',d:'4 lives · tight step margin',life:4,undo:4,cap:12e4,f:[.2,2],m:[.35,3],k:1},
 {n:'Standard',d:'2 lives · narrow step margin · 2 undos',life:2,undo:2,cap:18e4,f:[.1,1],m:[.7,2],k:1.1},
 {n:'Nightmare',d:'1 life · near-optimal steps · no starting undos · stacked conditions',life:1,undo:0,cap:28e4,f:[0,0],m:[1,1],k:1.6},
@@ -197,9 +206,40 @@ try{B=JSON.parse(localStorage.getItem('pxsoko2'))||{}}catch(e){}
 const ico=id=>ic((POOL.find(p=>p.id==id)||{}).ic||id),cnt=id=>S.rel.filter(r=>r==id).length,UC=()=>cnt('thread')?0:(L.M&&L.M.includes('costly')?4:2)+2*cnt('rust');
 const ov=h=>{o.innerHTML='<div class="box">'+h+'</div>';o.hidden=false},hide=()=>o.hidden=true,say=t=>$('msg').textContent=t,vib=n=>navigator.vibrate&&navigator.vibrate(n);
 let MB,MV=2.2,MREF=1.64,MC=null,noiseBuffer=null,MD=null,ME=null;
-function mbus(){if(MB)return MB;const comp=AC.createDynamicsCompressor(),master=AC.createGain(),delay=AC.createDelay(.45),fb=AC.createGain(),wet=AC.createGain(),lp=AC.createBiquadFilter();comp.threshold.value=-12;comp.knee.value=12;comp.ratio.value=3.5;comp.attack.value=.004;comp.release.value=.16;master.gain.value=1.0;comp.connect(master);master.connect(AC.destination);delay.delayTime.value=.19;fb.gain.value=.12;wet.gain.value=.09;lp.type='lowpass';lp.frequency.value=2400;delay.connect(lp);lp.connect(fb);fb.connect(delay);lp.connect(wet);wet.connect(comp);MB=AC.createGain();MB.gain.value=MV/MREF;MB.connect(comp);MB.connect(delay);return MB}
-function mnote(f,t,ty,v,at=.008,pan=0){if(v<.0003||!AC)return;const n=AC.currentTime,w=AC.createGain(),filter=AC.createBiquadFilter(),p=AC.createStereoPanner();filter.type='lowpass';filter.frequency.setValueAtTime(Math.min(11000,Math.max(1100,f*7)),n);filter.Q.value=.45;p.pan.value=pan;w.gain.setValueAtTime(.0001,n);w.gain.exponentialRampToValueAtTime(Math.max(.0002,v*.95),n+at);w.gain.setTargetAtTime(.0001,n+t,.05);w.connect(filter);filter.connect(p);p.connect(mbus());const count=ty==='sine'?1:2;for(let i=0;i<count;i++){const a=AC.createOscillator();a.type=ty;a.frequency.value=f;a.detune.value=count===1?0:(i?3:-3);const g=AC.createGain();g.gain.value=i===0?1:.24;a.connect(g);g.connect(w);a.start(n);a.stop(n+t+.13)}}
-function drum(kind,vol=.025){if(!AC||AC.state!=='running')return;const n=AC.currentTime,out=mbus(),gain=AC.createGain();gain.gain.setValueAtTime(Math.max(.0001,vol*MREF*1.3),n);gain.gain.exponentialRampToValueAtTime(.0001,n+(kind==='hat'?.035:kind==='snare'?.105:.18));gain.connect(out);if(kind==='kick'){const o=AC.createOscillator();o.type='sine';o.frequency.setValueAtTime(145,n);o.frequency.exponentialRampToValueAtTime(43,n+.12);const og=AC.createGain();og.gain.setValueAtTime(.8,n);og.gain.exponentialRampToValueAtTime(.001,n+.16);o.connect(og);og.connect(gain);o.start(n);o.stop(n+.19)}else{if(!noiseBuffer){noiseBuffer=AC.createBuffer(1,AC.sampleRate*.2,AC.sampleRate);const data=noiseBuffer.getChannelData(0);for(let i=0;i<data.length;i++)data[i]=Math.random()*2-1}const src=AC.createBufferSource(),f=AC.createBiquadFilter();src.buffer=noiseBuffer;f.type='highpass';f.frequency.value=kind==='hat'?7800:1800;src.connect(f);f.connect(gain);src.start(n);src.stop(n+(kind==='hat'?.04:.11))}}
+function mbus(){
+ if(MB)return MB;
+ const comp=AC.createDynamicsCompressor(),master=AC.createGain(),delay=AC.createDelay(.5),fb=AC.createGain(),wet=AC.createGain(),lp=AC.createBiquadFilter(),tone=AC.createBiquadFilter();
+ comp.threshold.value=-17;comp.knee.value=18;comp.ratio.value=2.6;comp.attack.value=.007;comp.release.value=.22;
+ master.gain.value=.9;comp.connect(master);master.connect(AC.destination);
+ tone.type='highpass';tone.frequency.value=34;tone.Q.value=.55;
+ delay.delayTime.value=.225;fb.gain.value=.16;wet.gain.value=.085;lp.type='lowpass';lp.frequency.value=3300;lp.Q.value=.35;
+ delay.connect(lp);lp.connect(fb);fb.connect(delay);lp.connect(wet);wet.connect(comp);
+ MB=AC.createGain();MB.gain.value=MV/MREF;MB.connect(tone);tone.connect(comp);MB.connect(delay);return MB
+}
+function mnote(f,t,ty,v,at=.008,pan=0){
+ if(v<.0003||!AC)return;
+ const n=AC.currentTime,w=AC.createGain(),filter=AC.createBiquadFilter(),p=AC.createStereoPanner();
+ filter.type='lowpass';filter.frequency.setTargetAtTime(Math.min(11800,Math.max(1050,f*8)),n,.018);filter.Q.value=.55;p.pan.value=Math.max(-.85,Math.min(.85,pan));
+ const attack=Math.max(.004,Math.min(.035,at)),release=Math.max(.035,Math.min(.14,t*.22));
+ w.gain.setValueAtTime(.0001,n);w.gain.exponentialRampToValueAtTime(Math.max(.0002,v*.92),n+attack);w.gain.setTargetAtTime(.0001,n+t,release*.32);
+ w.connect(filter);filter.connect(p);p.connect(mbus());
+ const layers=ty==='sine'?[{type:'sine',ratio:1,detune:0,level:1}]:[{type:ty,ratio:1,detune:-4,level:.74},{type:ty,ratio:1,detune:4,level:.26}];
+ if(ty==='triangle'&&f>280)layers.push({type:'sine',ratio:2,detune:0,level:.055});
+ if(f<105)layers.push({type:'sine',ratio:.5,detune:0,level:.12});
+ for(const layer of layers){const a=AC.createOscillator(),g=AC.createGain();a.type=layer.type;a.frequency.setValueAtTime(f*layer.ratio,n);a.detune.value=layer.detune;g.gain.value=layer.level;a.connect(g);g.connect(w);a.start(n);a.stop(n+t+release*1.7)}
+}
+function drum(kind,vol=.025){
+ if(!AC||AC.state!=='running')return;
+ const n=AC.currentTime,out=mbus(),gain=AC.createGain(),tail=kind==='hat'?.045:kind==='snare'?.13:.2;
+ gain.gain.setValueAtTime(Math.max(.0001,vol*MREF*1.22),n);gain.gain.exponentialRampToValueAtTime(.0001,n+tail);gain.connect(out);
+ if(kind==='kick'){
+  const o=AC.createOscillator(),og=AC.createGain();o.type='sine';o.frequency.setValueAtTime(155,n);o.frequency.exponentialRampToValueAtTime(42,n+.135);og.gain.setValueAtTime(.9,n);og.gain.exponentialRampToValueAtTime(.001,n+.17);o.connect(og);og.connect(gain);o.start(n);o.stop(n+.2);
+ }else{
+  if(!noiseBuffer){noiseBuffer=AC.createBuffer(1,AC.sampleRate*.2,AC.sampleRate);const data=noiseBuffer.getChannelData(0);for(let i=0;i<data.length;i++)data[i]=Math.random()*2-1}
+  const src=AC.createBufferSource(),f=AC.createBiquadFilter();src.buffer=noiseBuffer;f.type=kind==='hat'?'highpass':'bandpass';f.frequency.value=kind==='hat'?8200:kind==='snare'?2100:4500;f.Q.value=kind==='snare'?.75:.45;src.connect(f);f.connect(gain);src.start(n);src.stop(n+(kind==='hat'?.05:.12));
+  if(kind==='snare'){const o=AC.createOscillator(),og=AC.createGain();o.type='triangle';o.frequency.setValueAtTime(205,n);o.frequency.exponentialRampToValueAtTime(125,n+.09);og.gain.setValueAtTime(.13,n);og.gain.exponentialRampToValueAtTime(.001,n+.105);o.connect(og);og.connect(gain);o.start(n);o.stop(n+.12)}
+ }
+}
 function snd(f,t=.06,ty='square',v=.05,mu,at){if(mu?mm:sm)return;try{AC=AC||new AudioContext();if(AC.state!=='running'){Promise.resolve(AC.resume()).catch(()=>{});return}if(mu){mnote(f,t,ty,v*MREF,at);return}const a=AC.createOscillator(),w=AC.createGain();a.type=ty; a.frequency.value=f;const vv=v*MV/MREF;if(vv<.0004)return;w.gain.setValueAtTime(vv,AC.currentTime);w.gain.exponentialRampToValueAtTime(.001,AC.currentTime+t);a.connect(w);w.connect(AC.destination);a.start();a.stop(AC.currentTime+t)}catch(e){}}
 const TR=[
 {n:'Dungeon Crawl',sc:[0,3,5,7,10,12],m:[0,2,4,2,5,4,2,1],b:[0,3,2,4],bd:8,t:240,w:'triangle',v:.055,l:.2},
@@ -217,7 +257,7 @@ const TR=[
 {n:'Boss Battle II',sc:[0,1,3,6,7,10],m:[0,0,3,0,4,0,3,2,0,0,3,5,4,3,1,0],b:[0,1,3,1],bd:4,t:105,w:'sawtooth',v:.032,l:.07}
 ].map(x=>({...x,f:x.sc.map(q=>220*2**(q/12))}));
 const BOSS=6,MENU=7;let tk=0;
-const toast=t=>{const e=$('tn');e.textContent='♪ '+t;e.classList.add('show');clearTimeout(toast.h);toast.h=setTimeout(()=>e.classList.remove('show'),2200)};
+const toast=t=>{const e=$('tn');e.textContent=t;e.classList.add('show');clearTimeout(toast.h);toast.h=setTimeout(()=>e.classList.remove('show'),2200)};
 const PHRASES=[
 [0,2,4,2,5,4,2,1,0,2,4,5,4,2,1,-1],
 [0,1,2,1,3,2,4,2,5,4,3,2,1,2,0,-1],
@@ -235,11 +275,12 @@ const PHRASES=[
 ];
 const PROG=[[0,3,4,2],[0,2,3,4],[0,3,2,4],[0,0,3,4],[0,3,4,2],[0,3,4,0],[0,0,3,4],[0,3,4,2],[0,3,1,4],[0,0,3,2],[0,3,4,2],[0,3,2,4],[0,0,3,4]];
 function mus(){clearInterval(mt);if(mm)return;mi=0;const idx=Math.max(0,tk),T=TR[idx],mel=PHRASES[idx],prog=PROG[idx];if(AC&&AC.state==='running')toast(T.n);let phrase=0;mt=setInterval(()=>{if(mm)return;const q=mi++,p=q%16,bar=q>>4,scale=T.f,root=scale[0]/2;const deg=mel[p];
- if(q%8===0)drum('kick',T.v*.48);if(q%8===4)drum('snare',T.v*.20);if(q%2===0)drum('hat',T.v*.055);
+ if(q%8===0)drum('kick',T.v*.48);if(q%8===4)drum('snare',T.v*.20);if(q%2===0)drum('hat',T.v*(p%4===2?.038:.055));if(p===15&&bar%2===1)drum('hat',T.v*.075);
  const chord=prog[(q>>3)%prog.length],chRoot=scale[chord%6],third=scale[(chord+2)%6],fifth=scale[(chord+4)%6];
- if(q%2===0){const bass=chRoot/2; mnote(bass,.34,'triangle',T.v*.46,.012,-.12);if(q%8===0){mnote(chRoot,.72,'sine',T.v*.12,.05,-.22);mnote(third,.68,'sine',T.v*.095,.05,.18);mnote(fifth,.66,'sine',T.v*.08,.05,.28)}}
- if(deg>=0){const octave=(idx===2||idx===10)?12:12;const f=scale[deg%6]*2**(octave/12);const accent=(p%4===0)?1.0:(p%2===0?.78:.66);mnote(f,Math.max(.075,T.l*.70),T.w,T.v*.88*accent,.009,(p%3-1)*.16);if(p%4===2){const h=scale[(deg+2)%6]*2;mnote(h,Math.max(.06,T.l*.42),'sine',T.v*.19,.012,.22)}}
- if(p===15&&bar%4===3){const f=scale[4]*2;mnote(f,.18,'sine',T.v*.18,.01,.1)}
+ if(q%2===0){const bass=chRoot/2;mnote(bass,.36,'triangle',T.v*.46,.012,-.16);if(q%8===0){mnote(chRoot,.78,'sine',T.v*.12,.05,-.3);mnote(third,.72,'sine',T.v*.095,.05,.18);mnote(fifth,.7,'sine',T.v*.08,.05,.32)}}
+ if(deg>=0){const f=scale[deg%6]*2;const accent=(p%4===0)?1.0:(p%2===0?.8:.68);mnote(f,Math.max(.085,T.l*.74),T.w,T.v*.86*accent,.009,(p%3-1)*.2);if(p%4===2){const h=scale[(deg+2)%6]*2;mnote(h,Math.max(.065,T.l*.44),'sine',T.v*.2,.012,.24)}}
+ else if(q%4===2){const tones=[chRoot,third,fifth],arp=tones[(q>>2)%3];mnote(arp*2,.13,'triangle',T.v*.22,.006,(p%3-1)*.28)}
+ if(p===15&&bar%4===3){const f=scale[4]*2;mnote(f,.2,'sine',T.v*.2,.01,.12)}
  },Math.max(90,T.t));}
 const RND=[0,1,2,3,4,5,8,9,10],ALL=[0,1,2,3,4,5,8,9,10,11,6,12],pk=a=>a[Math.random()*a.length|0];
 const JG={w:[[523,0],[659,90],[784,180],[1047,270,.3]],l:[[392,0],[330,160],[262,320],[165,480,.5]]};
@@ -668,7 +709,7 @@ function rc(){
  ov(`<h2>Floor ${S.d} cleared!</h2><p>${'★'.repeat(S.st)}${'☆'.repeat(3-S.st)}  Coins +${S.gain}${L.boss?'  Boss reward: +1 life':''}</p><p>Choose a relic</p><div class="cards">`+S.pool.map(r=>`<button class="card r${r.r}" onclick="pick('${r.id}')"><b>${ico(r.id)} ${r.n} [${RC[r.r]}]</b><span>${r.t}</span></button>`).join('')+`</div><div class="row"><button onclick="rr()">Reroll (${S.rr>0?'free '+S.rr:'2 coins'})</button></div><p>${ic('bag')} ${S.coin}  ${S.note}</p>`);
 }
 function rr(){if(S.rr>0)S.rr--;else if(S.coin>=2)S.coin-=2;else{S.note='Not enough coins';return rc()}S.note='';choose()}
-const mcard=(k,s)=>`<div class="dr"><i>${MODS[k][2]}</i><div><b>${MODS[k][0]}${s?' <em>from '+s+'</em>':''}</b><span>${MODS[k][1]}</span></div></div>`;
+const mcard=(k,s)=>`<div class="dr">${ic(MODS[k][2])}<div><b>${MODS[k][0]}${s?' <em>from '+s+'</em>':''}</b><span>${MODS[k][1]}</span></div></div>`;
 function door(){
  const d=S.d,boss=d%5==0,per=cnt('pact')?3:1;let M=[];
  const pool=Object.keys(MODS).sort(()=>Math.random()-.5);
@@ -706,7 +747,7 @@ function help(t){
  ov(`<h2>How to Play</h2><div class="row">${tabs}</div>${body}<button onclick="${S.over?'start()':'hide()'}">Continue</button>`);
 }
 function rinfo(id){const p=POOL.find(x=>x.id==id);if(!p)return;ov(`<h2>${ico(id)} ${p.n}</h2><p class="rt r${p.r}"><b>${RC[p.r]}</b>${cnt(id)>1?' · owned ×'+cnt(id):''}</p><p class="pd">${p.t}</p><button onclick="hide()">Close</button>`)}
-function minfo(k){if(!MODS[k])return;ov(`<h2>${MODS[k][2]} ${MODS[k][0]}</h2><p class="pd">${MODS[k][1]}${k=='crumble'&&L.lim?' On this floor a tile breaks after you leave it '+L.lim+' times.':''}</p><button onclick="hide()">Close</button>`)}
+function minfo(k){if(!MODS[k])return;ov(`<h2>${ic(MODS[k][2]).replace('class="ic"','class="ic mod-title-icon"')} ${MODS[k][0]}</h2><p class="pd">${MODS[k][1]}${k=='crumble'&&L.lim?' On this floor a tile breaks after you leave it '+L.lim+' times.':''}</p><button onclick="hide()">Close</button>`)}
 function hi(id){
  const p=POOL.find(x=>x.id==id),d=$('hd'),was=d.dataset.o==id;
  document.querySelectorAll('#ov .ib').forEach(x=>x.classList.toggle('on',!was&&x.dataset.i==id));
@@ -727,7 +768,7 @@ function resume(){
 function go(i){tk=-1;newRun(i)}
 function layout(){const w=$('cw'),c=Math.max(8,Math.min(w.clientWidth/L.W|0,w.clientHeight/L.H|0));if(cv.width!=L.W*8)cv.width=L.W*8;if(cv.height!=L.H*8)cv.height=L.H*8;cv.style.width=L.W*c+'px';cv.style.height=L.H*c+'px'}
 function draw(){
- $('lv').innerHTML=`<b>${DF[S.df].n} · Floor ${S.d}${L.boss?' · BOSS':''}</b>`+(L.M.length?`<div class="mc">${L.M.map(k=>`<button class="mt" onclick="minfo('${k}')">${MODS[k][2]} ${MODS[k][0]}</button>`).join('')}</div>`:'');
+ $('lv').innerHTML=`<b>${DF[S.df].n} · Floor ${S.d}${L.boss?' · BOSS':''}</b>`+(L.M.length?`<div class="mc">${L.M.map(k=>`<button class="mt" onclick="minfo('${k}')">${ic(MODS[k][2])} ${MODS[k][0]}</button>`).join('')}</div>`:'');
  $('hud').innerHTML=[['life',S.life],['undo',S.undo],['shoe',L.left],['pull',L.pull],['ham',L.ham],['shield',S.sh],['bag',S.coin]].filter(([k,v],i)=>v>0||i<3).map(([k,v])=>`<span class="${k=='shoe'&&L.left<=5?'low':''}">${ic(k)} ${v>90?'∞':v}</span>`).join('');
  $('rel').innerHTML=[...new Set(S.rel)].map(id=>`<button class="ib r${POOL.find(p=>p.id==id).r}" onclick="rinfo('${id}')">${ico(id)}${cnt(id)>1?'×'+cnt(id):''} ${POOL.find(p=>p.id==id).n}</button>`).join('');
  $('bp').hidden=!(cnt('pull')||cnt('fury')||cnt('rope'));$('bp').textContent='Pull ×'+(L.pull>90?'∞':L.pull);$('bp').classList.toggle('on',armed);$('bu').textContent='Undo ×'+S.undo;$('bd').hidden=!cnt('dice')||!!S.dd;$('bw').hidden=!cnt('swap');$('bw').textContent='Swap ×'+(L.swp|0);$('bw').classList.toggle('on',wa);
