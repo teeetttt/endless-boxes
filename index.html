@@ -313,7 +313,7 @@ function solve(m,ar,gl,bx,px,py,cap){
  return null;
 }
 function gen(d,M){
- const df=S.df,GDL=Date.now()+1600;
+ const df=S.df,GDL=Date.now()+1600;let fe=null,fs=null;
  for(let tries=0;tries<36;tries++){
   if(Date.now()>GDL)break;
   const W=Math.min(7+(d/3|0)+(df>2),11),Hh=Math.min(7+((d+1)/3|0)+(df>2),10),nb=Math.min(6,3+(d*.4|0)+(M.includes('crowd')?1:0)+(M.includes('swarm')?2:0)+[0,1,2,3][df]);
@@ -343,14 +343,16 @@ function gen(d,M){
   }
   bx.forEach(([x,y])=>{ar[y][x]=0});ar[py][px]=0;
   const off=bx.filter(b=>!goals.some(q=>q[0]==b[0]&&q[1]==b[1]&&q[2]==b[2])).length,cd={m,ar,W,H:Hh,goals,bx,px,py,par:stk.length-1,sc:off*4+stk.length};
-  if(off<Math.max(2,Math.round(nb*.5))||stk.length<6+nb*1.5)continue;
+  if(off<Math.max(2,Math.round(nb*.5))||stk.length<6+nb*1.5){if(off>=1&&stk.length>=5&&(!fs||cd.sc>fs.sc))fs=cd;continue}
   const T={m:cd.m,ar:cd.ar,W:cd.W,H:cd.H,goals:cd.goals,tl:null,tel:[],lim:0,bx:cd.bx.map(b=>b.slice()),px:cd.px,py:cd.py,gate:1,wc:{},n:0};
   const r=solveX(T,15000,0,Date.now()+200);
   if(!r)continue;
   const minNeed=[10,13,16,19][df]+Math.min(7,d>>1);
-  if(tries<18&&r.n<minNeed)continue;
+  if(tries<18&&r.n<minNeed){if(!fe||r.n>fe.opt)fe={...cd,opt:r.n};continue}
   return{...cd,opt:r.n};
  }
+ if(fe)return fe;
+ if(fs){const r=solveX({m:fs.m,ar:fs.ar,W:fs.W,H:fs.H,goals:fs.goals,tl:null,tel:[],lim:0,bx:fs.bx.map(b=>b.slice()),px:fs.px,py:fs.py,gate:1,wc:{},n:0},15000,0,Date.now()+400);if(r)return{...fs,opt:r.n}}
  const W=Math.min(11,Math.max(7,7+(d/3|0)+(df>2))),Hh=Math.min(10,Math.max(7,7+((d+1)/3|0)+(df>2))),nt=d>=8?3:d>=4?2:1,nb=Math.min(4,Math.max(2,1+(d>=4)+(d>=9)+(df>=2)));
  const m=[...Array(Hh)].map((_,y)=>[...Array(W)].map((_,x)=>+(x==0||y==0||x==W-1||y==Hh-1))),ar=m.map(r=>r.map(()=>0));
  const goals=[],bx=[];for(let i=0;i<nb;i++){const y=2+i;goals.push([W-2,y,i%nt]);bx.push([W-3,y,i%nt])}
@@ -468,7 +470,7 @@ function solveX(T0,cap,lim,dl){
 function gen3(d,M,R){
  R=R||{};const l=gen(d,M),gh=M.includes('ghost'),cr=M.includes('crumble'),keep=M.filter(k=>!['ghost','crumble','icy','spiky','warp'].includes(k));
  let av=[['ice',2],['crack',3],['tele',3],['sw',4],['spk',7],['mud',2]].filter(a=>d>=a[1]).map(a=>a[0]).sort(()=>Math.random()-.5).slice(0,1+(d>=8));
- if(!gh&&!cr&&Math.random()<.12)av=[];if((M.includes('muddy')||R.boots)&&!av.includes('mud'))av.push('mud');
+ if(!gh&&!cr&&Math.random()<.12)av=[];if(d>=4&&!av.includes('sw')&&(d==4||Math.random()<.3))av=['sw',...av.slice(1)];if((M.includes('muddy')||R.boots)&&!av.includes('mud'))av.push('mud');
  if(M.includes('icy')&&!av.includes('ice'))av.push('ice');if(M.includes('spiky')&&!av.includes('spk'))av.push('spk');if(M.includes('warp')&&!av.includes('tele'))av.push('tele');
  let swc=[];
  if(av.includes('sw')){
@@ -739,7 +741,7 @@ function help(t){
  t=typeof t=='string'?t:'rules';
  const tabs=[['rules','Rules'],['items','Items'],['floors','Floors'],['keys','Controls']].map(([k,n])=>`<button class="tb${k==t?' on':''}" onclick="help('${k}')">${n}</button>`).join(''),
  body={
-  rules:`<p style="text-align:left">Push every box onto a goal of the same color. Boxes can only be pushed, never pulled.</p><p style="text-align:left">Arrow tiles can only be entered along the arrow. Mud costs 2 steps. Undo costs steps too.</p><p style="text-align:left">Running out of steps costs a heart. The closer you get to the best route, the more stars and coins you earn. Conditions are shown before each floor; a shop appears every 4 floors and a boss every 5.</p><p style="text-align:left">While playing, tap a condition tag under the floor title or a relic at the bottom to read what it does.</p>`,
+  rules:`<p style="text-align:left">Push every box onto a goal of the same color. Boxes can only be pushed, never pulled.</p><p style="text-align:left">Arrow tiles can only be entered along the arrow. Mud costs 2 steps. Undo costs steps too.</p><p style="text-align:left">A yellow plate opens the iron gate once a box is pushed onto it (you stepping on it does nothing). The gate stays open afterwards.</p><p style="text-align:left">Running out of steps costs a heart. The closer you get to the best route, the more stars and coins you earn. Conditions are shown before each floor; a shop appears every 4 floors and a boss every 5.</p><p style="text-align:left">While playing, tap a condition tag under the floor title or a relic at the bottom to read what it does.</p>`,
   items:`<div id="hd" class="hd">Tap a relic to read what it does.</div>`+[0,1,2,3].map(r=>`<p class="gh r${r}"><b>${RC[r]}</b></p><div class="row">`+POOL.filter(x=>!x.lootOff&&x.r==r).map(x=>`<button class="ib r${x.r}" data-i="${x.id}" onclick="hi('${x.id}')">${ico(x.id)} ${x.n}</button>`).join('')+`</div>`).join(''),
   floors:`<p style="text-align:left">Floor conditions change the rules of a floor. You see them before you enter, and they stay visible as tags under the floor title.</p><div class="cards dc">${Object.keys(MODS).map(k=>mcard(k)).join('')}</div>`,
   keys:`<p style="text-align:left"><b>Keyboard:</b> Arrow keys or WASD to move · Z undo · R restart · E pull · X swap · G dice.</p><p style="text-align:left"><b>Touch:</b> swipe on the board or use the D-pad. Matching boxes and goals share a color and a shape mark.</p>`
