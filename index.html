@@ -201,6 +201,8 @@ const DF=[{n:'Casual',d:'4 lives · tight step margin',life:4,undo:4,cap:12e4,f:
 {n:'Standard',d:'2 lives · narrow step margin · 2 undos',life:2,undo:2,cap:18e4,f:[.1,1],m:[.7,2],k:1.1},
 {n:'Nightmare',d:'1 life · near-optimal steps · no starting undos · stacked conditions',life:1,undo:0,cap:28e4,f:[0,0],m:[1,1],k:1.6},
 {n:'Hell',d:'1 life · optimal step budget · no undos · maximum floor conditions',life:1,undo:0,cap:36e4,f:[0,0],m:[1,1],k:2.2}];
+const BOSSES=[['The Stonekeeper',['maze','crowd'],'Walls close in and the floor is packed with boxes.'],['The Fog Warden',['fog','maze'],'You can barely see past your own feet.'],['The Frost Queen',['icy','crowd'],'Everything slides, and there are extra boxes.'],['The Mud Golem',['muddy','crumble'],'Slow ground that breaks under you.'],['The Phantom King',['ghost','blind'],'Nothing here is what it seems.'],['The Clockwork Tyrant',['spiky','warp'],'Spikes tick up and down, and pads throw you across the floor.'],['The Mirror Mage',['mirror','crowd'],'Left is right, and the room is crowded.']],
+bossOf=d=>{const b=BOSSES[Math.max(0,(d/5|0)-1)%BOSSES.length];return{n:b[0],M:b[1],t:b[2]}};
 let S={over:1},L={won:1},L0,H=[],armed=false,wa=false,B={},mm=false,sm=false,AC,VP=null,P=[],SH=[],mt,mi=0;
 try{B=JSON.parse(localStorage.getItem('pxsoko2'))||{}}catch(e){}
 const ico=id=>ic((POOL.find(p=>p.id==id)||{}).ic||id),cnt=id=>S.rel.filter(r=>r==id).length,UC=()=>cnt('thread')?0:(L.M&&L.M.includes('costly')?4:2)+2*cnt('rust');
@@ -675,7 +677,7 @@ function win(){
  L.won=1;draw();snd(660,.12);setTimeout(()=>snd(880,.18),120);vib([20,40,20]);setTimeout(()=>jingle('w'),300);
  for(let i=0;i<5;i++)setTimeout(()=>burst(Math.random()*L.W,Math.random()*L.H,12,['#f7d54a','#d9433b','#4fc3d9','#5aa84a','#e58fd0']),i*90);
  const u=L.budget-L.left,st=L.opt!=null?(u<=L.opt+Math.ceil(L.opt*.08)?3:u<=L.opt*1.3?2:1):(u/L.budget<=.6?3:u/L.budget<=.85?2:1);
- S.st=st;(S.stl=S.stl||[]).push(st);S.dbn=L.boss?0:L.M.length*(cnt('pact')?3:1);S.gain=Math.ceil(st*(cnt('bag')?2:1)*DF[S.df].k)+(cnt('dusk')?3:0)+2*cnt('purse')+3*cnt('miser')+4*cnt('wager')+3*cnt('idol')+S.dbn;S.coin+=S.gain;S.tot=(S.tot||0)+S.gain;S.undo+=cnt('sage');if(L.boss)S.life++;if(cnt('ember')&&S.d%4==0)S.life++;
+ S.st=st;(S.stl=S.stl||[]).push(st);S.dbn=L.boss?0:L.M.length*(cnt('pact')?3:1);S.gain=Math.ceil(st*(cnt('bag')?2:1)*DF[S.df].k)+(cnt('dusk')?3:0)+2*cnt('purse')+3*cnt('miser')+4*cnt('wager')+3*cnt('idol')+S.dbn;S.coin+=S.gain;S.tot=(S.tot||0)+S.gain;S.undo+=cnt('sage');if(L.boss){S.life++;toast(bossOf(S.d).n+' defeated!')}if(cnt('ember')&&S.d%4==0)S.life++;
  setTimeout(choose,900);
 }
 function out(){
@@ -716,11 +718,11 @@ function door(){
  const d=S.d,boss=d%5==0,per=cnt('pact')?3:1;let M=[];
  const pool=Object.keys(MODS).sort(()=>Math.random()-.5);
  const count=Math.min(pool.length-1,3+(d>=3)+(d>=6)+(d>=9)+(S.df>=1)+(S.df>=2)+cnt('pact'));
- if(boss){M=['maze','crowd'];const extras=pool.filter(k=>!M.includes(k));M.push(...extras.slice(0,1+(S.df>=1)+(S.df>=2)+(d>=10)+cnt('pact')))}
+ if(boss){M=bossOf(d).M.slice();const extras=pool.filter(k=>!M.includes(k));M.push(...extras.slice(0,1+(S.df>=1)+(S.df>=2)+(d>=10)+cnt('pact')))}
  else M=pool.slice(0,count);
  S.door=M;pregen();
  const fz=[];if(cnt('dusk')&&!M.includes('fog'))fz.push(['fog','Dusk Pact']);if(cnt('idol')&&!M.includes('blind'))fz.push(['blind','Blind Idol']);
- ov(`<h2>Floor ${d}${boss?' · BOSS':''}</h2><p><b>Next floor conditions (${M.length+fz.length})</b></p><div class="cards dc">${M.map(k=>mcard(k)).join('')}${fz.map(([k,r])=>mcard(k,r)).join('')}</div><p>${boss?'Boss reward: +1 life':'Condition bonus: +'+per+' coin'+(per>1?'s':'')+' per condition'}</p><button class="stk" onclick="load()">Enter floor</button>`);
+ ov(`<h2>Floor ${d}${boss?' · BOSS':''}</h2>${boss?'<p><b>'+bossOf(d).n+'</b></p><p>'+bossOf(d).t+'</p>':''}<p><b>Next floor conditions (${M.length+fz.length})</b></p><div class="cards dc">${M.map(k=>mcard(k)).join('')}${fz.map(([k,r])=>mcard(k,r)).join('')}</div><p>${boss?'Boss reward: +1 life':'Condition bonus: +'+per+' coin'+(per>1?'s':'')+' per condition'}</p><button class="stk" onclick="load()">Enter floor</button>`);
 }
 function pick(id){gain(id);S.d++;if(S.d%3==0)S.undo++;S.note='';if(S.d%4==0)shop();else door()}
 function shop(){tk=11;mus();
@@ -770,7 +772,7 @@ function resume(){
 function go(i){tk=-1;newRun(i)}
 function layout(){const w=$('cw'),c=Math.max(8,Math.min(w.clientWidth/L.W|0,w.clientHeight/L.H|0));if(cv.width!=L.W*8)cv.width=L.W*8;if(cv.height!=L.H*8)cv.height=L.H*8;cv.style.width=L.W*c+'px';cv.style.height=L.H*c+'px'}
 function draw(){
- $('lv').innerHTML=`<b>${DF[S.df].n} · Floor ${S.d}${L.boss?' · BOSS':''}</b>`+(L.M.length?`<div class="mc">${L.M.map(k=>`<button class="mt" onclick="minfo('${k}')">${ic(MODS[k][2])} ${MODS[k][0]}</button>`).join('')}</div>`:'');
+ $('lv').innerHTML=`<b>${DF[S.df].n} · Floor ${S.d}${L.boss?' · '+bossOf(S.d).n:''}</b>`+(L.M.length?`<div class="mc">${L.M.map(k=>`<button class="mt" onclick="minfo('${k}')">${ic(MODS[k][2])} ${MODS[k][0]}</button>`).join('')}</div>`:'');
  $('hud').innerHTML=[['life',S.life],['undo',S.undo],['shoe',L.left],['pull',L.pull],['ham',L.ham],['shield',S.sh],['bag',S.coin]].filter(([k,v],i)=>v>0||i<3).map(([k,v])=>`<span class="${k=='shoe'&&L.left<=5?'low':''}">${ic(k)} ${v>90?'∞':v}</span>`).join('');
  $('rel').innerHTML=[...new Set(S.rel)].map(id=>`<button class="ib r${POOL.find(p=>p.id==id).r}" onclick="rinfo('${id}')">${ico(id)}${cnt(id)>1?'×'+cnt(id):''} ${POOL.find(p=>p.id==id).n}</button>`).join('');
  $('bp').hidden=!(cnt('pull')||cnt('fury')||cnt('rope'));$('bp').textContent='Pull ×'+(L.pull>90?'∞':L.pull);$('bp').classList.toggle('on',armed);$('bu').textContent='Undo ×'+S.undo;$('bd').hidden=!cnt('dice')||!!S.dd;$('bw').hidden=!cnt('swap');$('bw').textContent='Swap ×'+(L.swp|0);$('bw').classList.toggle('on',wa);
