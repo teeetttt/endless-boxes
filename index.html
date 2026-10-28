@@ -98,7 +98,7 @@ button.mt{font-size:11px;padding:1px 5px;border-width:2px;box-shadow:0 1px 0 var
 <header><h1>Endless Boxes</h1><span><button id="bhm">Home</button> <button id="bh">?</button> <button id="bm">Music: On</button> <input type="range" id="bv" min="0" max="100" value="70" aria-label="Volume"> <button id="bs">SFX: On</button> <button id="bn">Next Track</button></span></header>
 <div id="lv"></div><div id="hud"></div><div id="cw"><canvas id="c"></canvas></div><div id="msg"></div><div id="rel"></div>
 <div id="ctl"><div class="pad"><button data-d="0,-1">↑</button><button data-d="-1,0">←</button><button data-d="0,1">↓</button><button data-d="1,0">→</button></div>
-<div class="act"><button id="bu">Undo</button><button id="bp">Pull</button><button id="br">Restart</button><button id="bd" hidden>Dice</button><button id="bw" hidden>Swap</button></div></div>
+<div class="act"><button id="bu">Undo</button><button id="bp">Pull</button><button id="br">Restart</button><button id="bt">Hint</button><button id="bd" hidden>Dice</button><button id="bw" hidden>Swap</button></div></div>
 <div id="tn"></div><div id="ov" hidden></div>
 <script>
 const $=id=>document.getElementById(id),cv=$('c'),g=cv.getContext('2d'),o=$('ov');
@@ -291,7 +291,9 @@ function track(){let n;if(L.boss)n=pk([6,12]);else if(S.d==1)n=0;else{do n=pk(RN
 function nextTrack(){tk=ALL[(ALL.indexOf(tk)+1)%ALL.length];mm=false;$('bm').textContent='Music: On';mus()}
 const unlock=()=>{try{AC=AC||new AudioContext();if(AC.state!='running')Promise.resolve(AC.resume()).catch(()=>{})}catch(e){}};
 addEventListener('pointerdown',unlock);addEventListener('keydown',unlock);
-function shake(){cv.classList.remove('sh');void cv.offsetWidth;cv.classList.add('sh')}
+let SK=1;try{const v=localStorage.getItem('pxshake');SK=v===null?(typeof matchMedia=='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches?0:1):+v}catch(e){}
+function toggleShake(){SK=SK?0:1;try{localStorage.setItem('pxshake',SK)}catch(e){}help('keys')}
+function shake(){if(!SK)return;cv.classList.remove('sh');void cv.offsetWidth;cv.classList.add('sh')}
 function burst(x,y,n,cs){for(let i=0;i<n;i++)P.push({x:x*8+4,y:y*8+4,vx:(Math.random()-.5)*2,vy:(Math.random()-.9)*2,l:18+Math.random()*16|0,c:cs[Math.random()*cs.length|0]})}
 function solve(m,ar,gl,bx,px,py,cap){
  const W=m[0].length,key=(x,y,b)=>x+','+y+'|'+b.map(q=>(q[1]*W+q[0])*4+q[2]).sort((a,c)=>a-c),
@@ -517,7 +519,7 @@ function gen3(d,M,R){
   const replay={...finalT,m:finalT.m.map(row=>row.slice()),bx:finalT.bx.map(b=>b.slice()),wc:{}};
   let valid=true;
   for(let z=0;z<checked.path.length;z++)if(!sstep(replay,checked.path[z],checked.modes[z]||'normal')){valid=false;break}
-  const solved=replay.bx.every(([x,y,t])=>t==3||l.goals.some(q=>q[0]==x&&q[1]==y&&q[2]==t));
+  const solved=replay.bx.every(([x,y,t])=>t==3||l.goals.some(q=>q[0]==x&&q[1]==y&&(R.prism||q[2]==t)));
   if(!valid||!solved)continue;
   return{...l,tl,tel,bx,gate:sw?0:1,wc:{},lim,n:0,xt:1,opt:checked.n};
  }
@@ -617,7 +619,7 @@ function genArgs(){const d=S.d;let M=(S.door||[]).slice();if(cnt('dusk')&&!M.inc
  const RF={ham:2*cnt('ham')+4*cnt('titan')+8*cnt('drill'),pull:cnt('fury')?99:2*cnt('pull')+3*cnt('rope'),swp:cnt('swap'),heavy:cnt('heavy')>0,colossus:cnt('colossus')>0,anchor:cnt('anchor')>0,prism:cnt('prism')>0,boots:cnt('swamp')>0};
  return{d,M,RF,k:JSON.stringify([S.df,d,M,RF])}}
 function pregen(){PG=null;if(!WK)return;cancelJobs();const{d,M,RF,k}=genArgs();PG={k,p:job({k:'gen',d,M,R:RF},()=>0)}}
-function saveRun(){try{localStorage.setItem('pxsoko2run',JSON.stringify({S:{...S,pool:null},L0}))}catch(e){}}
+function saveRun(){try{localStorage.setItem('pxsoko2run',JSON.stringify({S:{...S,pool:S.pool?S.pool.map(p=>p.id):null},L0}))}catch(e){}}
 function newRun(df){S={df,d:1,life:DF[df].life,undo:DF[df].undo,coin:0,rr:0,sh:0,rel:[],note:'',stl:[],tot:0,door:[]};load()}
 function load(){
  ov('<h2>Generating level…</h2><p>Calculating the optimal solution</p>');
@@ -630,7 +632,7 @@ function load(){
   let bg=opt!=null?(M.includes('rush')?opt+(S.df<2?2:0):opt+Math.round(opt*sf)+sa):l.par+[8,4,2,0][S.df];
   bg=Math.round(bg*(1+.15*cnt('shoe')))+4*cnt('satchel');if(cnt('miser')&&opt!=null)bg=Math.max(opt,Math.round(bg*.8));
   L={...l,M,boss,budget:bg,left:bg,n:0,...RF,ech:l.bx.filter(b=>b[2]!=3&&l.goals.some(q=>q[0]==b[0]&&q[1]==b[1]&&q[2]==b[2])).map(b=>b[0]+','+b[1])};
-  S.rer=0;track();L0=JSON.stringify(L);saveRun();H=[];armed=wa=false;VP=null;layout();hide();
+  S.rer=0;S.stage='play';track();L0=JSON.stringify(L);saveRun();H=[];armed=wa=false;VP=null;layout();hide();
   say((M.length?M.length+' condition'+(M.length>1?'s':'')+': '+M.map(k=>MODS[k][0]).join(', ')+' · tap a tag above for details':'Push every box onto a goal of the same color.')+(L.tl&&L.tl.some(r=>r.includes(3))?' · Push a box onto the plate to open the gate':''));
   draw();snd(330);
  },30);
@@ -640,7 +642,7 @@ function mv(dx,dy){
  if(!o.hidden||L.won||S.over)return;
  if(L.M.includes('mirror'))dx=-dx;const i=DR.findIndex(([a,b])=>a==dx&&b==dy),A=(x,y)=>!L.ar[y][x]||L.ar[y][x]==i+1,snap=JSON.stringify(L),px=L.px,py=L.py,tx=px+dx,ty=py+dy;
  let ok=0,pushed=0,hit=0,pulled=0,gone=0,swapped=0,mvd=[];const g0=L.gate;
- if(L.m[ty][tx]){if(L.ham>0&&tx>0&&ty>0&&tx<L.W-1&&ty<L.H-1){L.m[ty][tx]=0;L.ham--;ok=hit=1}}
+ if(L.m[ty][tx]){if(L.ham>0&&tx>0&&ty>0&&tx<L.W-1&&ty<L.H-1&&A(tx,ty)){L.m[ty][tx]=0;L.ham--;ok=hit=1}}
  else if(sol(L,tx,ty)){}
  else if(A(tx,ty)){
   const b=box(tx,ty);
@@ -676,6 +678,7 @@ function mv(dx,dy){
 function win(){
  L.won=1;draw();snd(660,.12);setTimeout(()=>snd(880,.18),120);vib([20,40,20]);setTimeout(()=>jingle('w'),300);
  for(let i=0;i<5;i++)setTimeout(()=>burst(Math.random()*L.W,Math.random()*L.H,12,['#f7d54a','#d9433b','#4fc3d9','#5aa84a','#e58fd0']),i*90);
+ if(S.tut){setTimeout(tutNext,900);return}
  const u=L.budget-L.left,st=L.opt!=null?(u<=L.opt+Math.ceil(L.opt*.08)?3:u<=L.opt*1.3?2:1):(u/L.budget<=.6?3:u/L.budget<=.85?2:1);
  S.st=st;(S.stl=S.stl||[]).push(st);S.dbn=L.boss?0:L.M.length*(cnt('pact')?3:1);S.gain=Math.ceil(st*(cnt('bag')?2:1)*DF[S.df].k)+(cnt('dusk')?3:0)+2*cnt('purse')+3*cnt('miser')+4*cnt('wager')+3*cnt('idol')+S.dbn;S.coin+=S.gain;S.tot=(S.tot||0)+S.gain;S.undo+=cnt('sage');if(L.boss){S.life++;toast(bossOf(S.d).n+' defeated!')}if(cnt('ember')&&S.d%4==0)S.life++;
  setTimeout(choose,900);
@@ -696,6 +699,35 @@ function undo(){
 }
 function pullMode(){if(L.pull>0){armed=!armed;if(armed)wa=false;say(armed?'Pull mode: step one tile away from the box':'');draw()}else say('No pulls left on this level')}
 function swapMode(){if(L.won||S.over||!o.hidden||!cnt('swap'))return;if((L.swp|0)>0){wa=!wa;if(wa)armed=false;say(wa?'Swap mode: walk into a box to trade places with it':'');draw()}else say('No swaps left on this level')}
+let hb=0;
+async function hint(){
+ if(L.won||S.over||!o.hidden||hb)return;
+ const cost=S.tut?0:2;
+ if(S.coin<cost)return say('Hints cost 2 coins');
+ hb=1;say('Thinking…');const snap=L,T=JSON.parse(JSON.stringify(L));T.wc=T.wc||{};if(T.gate===undefined)T.gate=1;
+ let r=null;try{r=await job({k:'sx',T,cap:15e4},()=>solveX(T,15e4,0,Date.now()+1500))}catch(e){}
+ hb=0;if(L!==snap||L.won||S.over)return;
+ if(!r||!r.path)return say('No hint found. The floor may be stuck: try Undo or Restart.');
+ if(!r.path.length)return say('Nothing left to do!');
+ const mir=L.M.includes('mirror'),AR=['↑','→','↓','←'],mn={pull:' Pull',swap:' Swap',hammer:' Smash'};
+ const mv3=r.path.slice(0,3).map((i,z)=>AR[mir&&i%2?(i+2)%4:i]+(mn[r.modes[z]]||'')).join(' ');
+ S.coin-=cost;say('Hint: '+mv3+(r.path.length>3?' …':'')+' · '+r.n+' steps to go');draw();
+}
+const TUT=[
+{r:['#######','#.....#','#@.B.o#','#.....#','#######'],msg:'Walk into a box to push it. Push the box onto the red goal.'},
+{r:['#######','#.....#','#@.B.o#','#..C.p#','#.....#','#######'],msg:'Each box goes onto the goal with the same color and shape.'},
+{r:['#######','#B...o#','#.....#','#@....#','#######'],pull:3,msg:'The box is stuck in a corner! Tap Pull, then step directly away from it.'}];
+function tut(){S={df:0,d:1,life:99,undo:99,coin:0,rr:0,sh:0,rel:[],note:'',stl:[],tot:0,door:[],tut:1};tutLoad()}
+function tutLoad(){
+ const t=TUT[S.tut-1],W=t.r[0].length,Hh=t.r.length,m=[],goals=[],bx=[];let px=1,py=1;
+ t.r.forEach((row,y)=>{m.push([...row].map((c,x)=>{if(c=='@'){px=x;py=y}if(c=='B')bx.push([x,y,0]);if(c=='C')bx.push([x,y,1]);if(c=='o')goals.push([x,y,0]);if(c=='p')goals.push([x,y,1]);return +(c=='#')}))});
+ const ar=m.map(r=>r.map(()=>0)),sv=t.pull?null:solve(m,ar,goals,bx,px,py,5e4),opt=sv?sv.n:null,bg=opt!=null?opt+6:40;
+ S.rel=t.pull?['pull']:[];
+ L={m,ar,W,H:Hh,goals,bx,px,py,tl:null,tel:[],lim:0,gate:1,wc:{},M:[],boss:false,opt,budget:bg,left:bg,n:0,ham:0,pull:t.pull|0,swp:0,heavy:false,colossus:false,anchor:false,prism:false,boots:false,ech:[]};
+ tk=-1;track();L0=JSON.stringify(L);H=[];armed=wa=false;VP=null;layout();hide();say(t.msg);draw();snd(330)}
+function tutNext(){
+ S.tut++;if(S.tut<=TUT.length)return tutLoad();
+ S.over=1;ov('<h2>Tutorial complete!</h2><p>You know the basics. Conditions, relics, shops and bosses come next.</p><button class="card" onclick="start()"><b>Start a run</b></button>')}
 function dice(){
  if(L.won||S.over||!o.hidden)return;
  if(!cnt('dice'))return say("You don't have the Gambler's Dice");
@@ -707,29 +739,38 @@ function give(r){const p=POOL.filter(x=>!x.lootOff&&x.r==r&&!(x.u&&cnt(x.id)));i
 function choose(){
  const c=POOL.filter(r=>!r.lootOff&&!(r.u&&cnt(r.id))),p=[];
  while(p.length<3&&c.length>p.length){const w=c.filter(x=>!p.includes(x));let t=w.reduce((s,x)=>s+RW[x.r],0)*Math.random();for(const x of w){t-=RW[x.r];if(t<=0){p.push(x);break}}}
- S.pool=p;rc();
+ S.pool=p;S.stage='choose';saveRun();rc();
 }
 function rc(){
  ov(`<h2>Floor ${S.d} cleared!</h2><p>${'★'.repeat(S.st)}${'☆'.repeat(3-S.st)}  Coins +${S.gain}${L.boss?'  Boss reward: +1 life':''}</p><p>Choose a relic</p><div class="cards">`+S.pool.map(r=>`<button class="card r${r.r}" onclick="pick('${r.id}')"><b>${ico(r.id)} ${r.n} [${RC[r.r]}]</b><span>${r.t}</span></button>`).join('')+`</div><div class="row"><button onclick="rr()">Reroll (${S.rr>0?'free '+S.rr:'2 coins'})</button></div><p>${ic('bag')} ${S.coin}  ${S.note}</p>`);
 }
 function rr(){if(S.rr>0)S.rr--;else if(S.coin>=2)S.coin-=2;else{S.note='Not enough coins';return rc()}S.note='';choose()}
 const mcard=(k,s)=>`<div class="dr">${ic(MODS[k][2])}<div><b>${MODS[k][0]}${s?' <em>from '+s+'</em>':''}</b><span>${MODS[k][1]}</span></div></div>`;
-function door(){
+const VIS=['fog','dark','blind','amnesia'],UND=['seal','costly','frail'];
+function cok(M,k){const v=a=>M.some(x=>a.includes(x));
+ if(VIS.includes(k)&&(v(VIS)||M.includes('mirror')))return 0;
+ if(k=='mirror'&&v(VIS))return 0;
+ if(UND.includes(k)&&v(UND))return 0;
+ return 1}
+function pickM(pool,n,M){M=M||[];for(const k of pool){if(M.length>=n)break;if(!M.includes(k)&&cok(M,k))M.push(k)}return M}
+function door(keep){
  const d=S.d,boss=d%5==0,per=cnt('pact')?3:1;let M=[];
  const pool=Object.keys(MODS).sort(()=>Math.random()-.5);
- const count=Math.min(pool.length-1,3+(d>=3)+(d>=6)+(d>=9)+(S.df>=1)+(S.df>=2)+cnt('pact'));
- if(boss){M=bossOf(d).M.slice();const extras=pool.filter(k=>!M.includes(k));M.push(...extras.slice(0,1+(S.df>=1)+(S.df>=2)+(d>=10)+cnt('pact')))}
- else M=pool.slice(0,count);
- S.door=M;pregen();
+ const count=Math.min(pool.length-1,Math.min(d-1,3)+(d>=5)+(d>=6)+(d>=9)+(S.df>=1)+(S.df>=2)+cnt('pact'));
+ const kp=keep&&(S.door||[]).length;let banned='';
+ if(kp)M=S.door.filter(k=>MODS[k]);else if(boss){M=bossOf(d).M.slice();pickM(pool,M.length+1+(S.df>=1)+(S.df>=2)+(d>=10)+cnt('pact'),M)}
+ else M=pickM(pool,count);
+ if(!kp&&S.ban){const b0=boss?bossOf(d).M.length:0;if(M.length>b0){S.ban=0;banned=M.splice(b0+(Math.random()*(M.length-b0)|0),1)[0]}}
+ S.door=M;S.stage='door';saveRun();pregen();
  const fz=[];if(cnt('dusk')&&!M.includes('fog'))fz.push(['fog','Dusk Pact']);if(cnt('idol')&&!M.includes('blind'))fz.push(['blind','Blind Idol']);
- ov(`<h2>Floor ${d}${boss?' · BOSS':''}</h2>${boss?'<p><b>'+bossOf(d).n+'</b></p><p>'+bossOf(d).t+'</p>':''}<p><b>Next floor conditions (${M.length+fz.length})</b></p><div class="cards dc">${M.map(k=>mcard(k)).join('')}${fz.map(([k,r])=>mcard(k,r)).join('')}</div><p>${boss?'Boss reward: +1 life':'Condition bonus: +'+per+' coin'+(per>1?'s':'')+' per condition'}</p><button class="stk" onclick="load()">Enter floor</button>`);
+ ov(`<h2>Floor ${d}${boss?' · BOSS':''}</h2>${boss?'<p><b>'+bossOf(d).n+'</b></p><p>'+bossOf(d).t+'</p>':''}${banned?'<p>Banished: <b>'+MODS[banned][0]+'</b></p>':''}<p><b>Next floor conditions (${M.length+fz.length})</b></p><div class="cards dc">${M.map(k=>mcard(k)).join('')}${fz.map(([k,r])=>mcard(k,r)).join('')}</div><p>${boss?'Boss reward: +1 life':'Condition bonus: +'+per+' coin'+(per>1?'s':'')+' per condition'}</p><button class="stk" onclick="load()">Enter floor</button>`);
 }
 function pick(id){gain(id);S.d++;if(S.d%3==0)S.undo++;S.note='';if(S.d%4==0)shop();else door()}
-function shop(){tk=11;mus();
- SH=[['Restore Heart',6,()=>(S.life++,1)],['+3 Undos',3,()=>(S.undo+=3,1)],['Guardian Shield',5,()=>(S.sh++,1)],['Random Rare Relic',9,()=>give(1)],['Random Epic Relic',15,()=>give(2)],['Purify a Curse',4,()=>{const i=S.rel.findIndex(r=>POOL.find(p=>p.id==r).r==3);if(i<0)return 0;S.rel.splice(i,1);return 1}]];
+function shop(){tk=11;mus();S.stage='shop';
+ SH=[['Restore Heart',6,()=>(S.life++,1)],['+3 Undos',3,()=>(S.undo+=3,1)],['Guardian Shield',5,()=>(S.sh++,1)],['Random Rare Relic',9,()=>give(1)],['Random Epic Relic',15,()=>give(2)],['Purify a Curse',4,()=>{const i=S.rel.findIndex(r=>POOL.find(p=>p.id==r).r==3);if(i<0)return 0;S.rel.splice(i,1);return 1}],['Banish a Condition (next floor)',6,()=>S.ban?0:(S.ban=1,1)]];
  sh2();
 }
-function sh2(){ov(`<h2>Dungeon Shop</h2><p>${ic('bag')} ${S.coin}  ${S.note}</p><div class="cards two">`+SH.map((x,i)=>`<button class="card" onclick="bs(${i})"><b>${x[0]}</b><span>${x[1]} coins</span></button>`).join('')+`</div><button onclick="S.note='';door()">Leave Shop</button>`)}
+function sh2(){saveRun();ov(`<h2>Dungeon Shop</h2><p>${ic('bag')} ${S.coin}  ${S.note}</p><div class="cards two">`+SH.map((x,i)=>`<button class="card" onclick="bs(${i})"><b>${x[0]}</b><span>${x[1]} coins</span></button>`).join('')+`</div><button onclick="S.note='';door()">Leave Shop</button>`)}
 function bs(i){const x=SH[i];if(S.coin<x[1])S.note='Not enough coins';else{S.coin-=x[1];if(x[2]())S.note='Purchased: '+x[0];else{S.coin+=x[1];S.note='Cannot buy'}}sh2()}
 function over(){
  S.over=1;clearInterval(mt);tk=-1;jingle('l');try{localStorage.removeItem('pxsoko2run')}catch(e){}
@@ -746,7 +787,7 @@ function help(t){
   rules:`<p style="text-align:left">Push every box onto a goal of the same color. Boxes can only be pushed, never pulled.</p><p style="text-align:left">Arrow tiles can only be entered along the arrow. Mud costs 2 steps. Undo costs steps too.</p><p style="text-align:left">A yellow plate opens the iron gate once a box is pushed onto it (you stepping on it does nothing). The gate stays open afterwards.</p><p style="text-align:left">Running out of steps costs a heart. The closer you get to the best route, the more stars and coins you earn. Conditions are shown before each floor; a shop appears every 4 floors and a boss every 5.</p><p style="text-align:left">While playing, tap a condition tag under the floor title or a relic at the bottom to read what it does.</p>`,
   items:`<div id="hd" class="hd">Tap a relic to read what it does.</div>`+[0,1,2,3].map(r=>`<p class="gh r${r}"><b>${RC[r]}</b></p><div class="row">`+POOL.filter(x=>!x.lootOff&&x.r==r).map(x=>`<button class="ib r${x.r}" data-i="${x.id}" onclick="hi('${x.id}')">${ico(x.id)} ${x.n}</button>`).join('')+`</div>`).join(''),
   floors:`<p style="text-align:left">Floor conditions change the rules of a floor. You see them before you enter, and they stay visible as tags under the floor title.</p><div class="cards dc">${Object.keys(MODS).map(k=>mcard(k)).join('')}</div>`,
-  keys:`<p style="text-align:left"><b>Keyboard:</b> Arrow keys or WASD to move · Z undo · R restart · E pull · X swap · G dice.</p><p style="text-align:left"><b>Touch:</b> swipe on the board or use the D-pad. Matching boxes and goals share a color and a shape mark.</p>`
+  keys:`<p style="text-align:left"><b>Keyboard:</b> Arrow keys or WASD to move · Z undo · R restart · E pull · X swap · G dice · H hint (2 coins).</p><p style="text-align:left"><b>Touch:</b> swipe on the board or use the D-pad. Matching boxes and goals share a color and a shape mark.</p><p><button onclick="toggleShake()">Screen shake: ${SK?'On':'Off'}</button></p>`
  }[t];
  ov(`<h2>How to Play</h2><div class="row">${tabs}</div>${body}<button onclick="${S.over?'start()':'hide()'}">Continue</button>`);
 }
@@ -762,20 +803,23 @@ function savedRun(){try{return JSON.parse(localStorage.getItem('pxsoko2run'))}ca
 function start(){
  LT++;if(tk!=MENU){tk=MENU;mus()}
  const r=savedRun(),cr=r&&r.S&&DF[r.S.df]&&r.L0?`<button class="card" onclick="resume()"><b>Continue run</b><span>${DF[r.S.df].n} · Floor ${r.S.d}</span></button>`:'';
- ov(`<h2>Endless Boxes</h2><p>Choose difficulty</p><div class="cards">${cr}`+DF.map((x,i)=>`<button class="card" onclick="go(${i})"><b>${x.n} · Best: Floor ${B[i]||0}</b><span>${x.d}</span></button>`).join('')+`</div><button onclick="help()">How to Play</button>`)
+ ov(`<h2>Endless Boxes</h2><p>Choose difficulty</p><div class="cards">${cr}`+DF.map((x,i)=>`<button class="card" onclick="go(${i})"><b>${x.n} · Best: Floor ${B[i]||0}</b><span>${x.d}</span></button>`).join('')+`<button class="card" onclick="tut()"><b>Tutorial</b><span>3 short guided floors: push, match colors, pull</span></button></div><button onclick="help()">How to Play</button>`)
 }
 function resume(){
  const r=savedRun();if(!r)return start();
- S=r.S;S.over=0;S.rel=(S.rel||[]).filter(id=>POOL.some(p=>p.id==id));S.door=(S.door||[]).filter(k=>MODS[k]);L0=r.L0;L=JSON.parse(L0);L.M=(L.M||[]).filter(k=>MODS[k]);L0=JSON.stringify(L);H=[];armed=wa=false;VP=null;tk=-1;track();layout();hide();
+ S=r.S;S.over=0;S.rel=(S.rel||[]).filter(id=>POOL.some(p=>p.id==id));S.door=(S.door||[]).filter(k=>MODS[k]);L0=r.L0;
+ if(S.stage=='door'||S.stage=='shop'){S.pool=null;H=[];armed=wa=false;VP=null;tk=-1;track();hide();return S.stage=='shop'?shop():door(1)}
+ if(S.stage=='choose'){L=JSON.parse(L0);L.M=(L.M||[]).filter(k=>MODS[k]);H=[];armed=wa=false;VP=null;tk=-1;track();layout();S.pool=(S.pool||[]).map(id=>POOL.find(p=>p.id==id)).filter(Boolean);return S.pool.length?rc():choose()}
+ L=JSON.parse(L0);L.M=(L.M||[]).filter(k=>MODS[k]);L0=JSON.stringify(L);H=[];armed=wa=false;VP=null;tk=-1;track();layout();hide();
  say('Run restored. This floor was restarted from the beginning.');draw();
 }
 function go(i){tk=-1;newRun(i)}
 function layout(){const w=$('cw'),c=Math.max(8,Math.min(w.clientWidth/L.W|0,w.clientHeight/L.H|0));if(cv.width!=L.W*8)cv.width=L.W*8;if(cv.height!=L.H*8)cv.height=L.H*8;cv.style.width=L.W*c+'px';cv.style.height=L.H*c+'px'}
 function draw(){
- $('lv').innerHTML=`<b>${DF[S.df].n} · Floor ${S.d}${L.boss?' · '+bossOf(S.d).n:''}</b>`+(L.M.length?`<div class="mc">${L.M.map(k=>`<button class="mt" onclick="minfo('${k}')">${ic(MODS[k][2])} ${MODS[k][0]}</button>`).join('')}</div>`:'');
+ $('lv').innerHTML=`<b>${S.tut?'Tutorial · '+S.tut+'/'+TUT.length:DF[S.df].n+' · Floor '+S.d}${L.boss?' · '+bossOf(S.d).n:''}${L.opt!=null&&!S.tut?' · ★★★ ≤ '+(L.opt+Math.ceil(L.opt*.08)):''}</b>`+(L.M.length?`<div class="mc">${L.M.map(k=>`<button class="mt" onclick="minfo('${k}')">${ic(MODS[k][2])} ${MODS[k][0]}</button>`).join('')}</div>`:'');
  $('hud').innerHTML=[['life',S.life],['undo',S.undo],['shoe',L.left],['pull',L.pull],['ham',L.ham],['shield',S.sh],['bag',S.coin]].filter(([k,v],i)=>v>0||i<3).map(([k,v])=>`<span class="${k=='shoe'&&L.left<=5?'low':''}">${ic(k)} ${v>90?'∞':v}</span>`).join('');
  $('rel').innerHTML=[...new Set(S.rel)].map(id=>`<button class="ib r${POOL.find(p=>p.id==id).r}" onclick="rinfo('${id}')">${ico(id)}${cnt(id)>1?'×'+cnt(id):''} ${POOL.find(p=>p.id==id).n}</button>`).join('');
- $('bp').hidden=!(cnt('pull')||cnt('fury')||cnt('rope'));$('bp').textContent='Pull ×'+(L.pull>90?'∞':L.pull);$('bp').classList.toggle('on',armed);$('bu').textContent='Undo ×'+S.undo;$('bd').hidden=!cnt('dice')||!!S.dd;$('bw').hidden=!cnt('swap');$('bw').textContent='Swap ×'+(L.swp|0);$('bw').classList.toggle('on',wa);
+ $('bp').hidden=!(cnt('pull')||cnt('fury')||cnt('rope'));$('bp').textContent='Pull ×'+(L.pull>90?'∞':L.pull);$('bp').classList.toggle('on',armed);$('bu').textContent='Undo ×'+S.undo+(UC()?' −'+UC():'');$('bt').textContent=S.tut?'Hint':'Hint ·2';$('bd').hidden=!cnt('dice')||!!S.dd;$('bw').hidden=!cnt('swap');$('bw').textContent='Swap ×'+(L.swp|0);$('bw').classList.toggle('on',wa);
 }
 const GL=[[[1,0],[0,1],[1,1],[2,1],[1,2]],[[0,0],[2,0],[1,1],[0,2],[2,2]],[[0,0],[1,0],[2,0],[0,2],[1,2],[2,2]]];
 function tile(x,y){
@@ -818,9 +862,9 @@ function frame(t){
 }
 addEventListener('keydown',e=>{
  const k=e.key.length==1?e.key.toLowerCase():e.key,K={ArrowUp:[0,-1],w:[0,-1],ArrowDown:[0,1],s:[0,1],ArrowLeft:[-1,0],a:[-1,0],ArrowRight:[1,0],d:[1,0]};
- if(K[k]){e.preventDefault();mv(...K[k])}else if(k=='z')undo();else if(k=='r'&&o.hidden&&!S.over)reset();else if(k=='e')pullMode();else if(k=='x')swapMode();else if(k=='g')dice();
+ if(K[k]){e.preventDefault();mv(...K[k])}else if(k=='z')undo();else if(k=='r'&&o.hidden&&!S.over)reset();else if(k=='e')pullMode();else if(k=='x')swapMode();else if(k=='g')dice();else if(k=='h')hint();
 });
-$('bu').onclick=undo;$('br').onclick=()=>{if(o.hidden&&!S.over)reset()};$('bp').onclick=pullMode;$('bd').onclick=dice;$('bw').onclick=swapMode;
+$('bu').onclick=undo;$('bt').onclick=hint;$('br').onclick=()=>{if(o.hidden&&!S.over)reset()};$('bp').onclick=pullMode;$('bd').onclick=dice;$('bw').onclick=swapMode;
 $('bhm').onclick=()=>start();$('bh').onclick=help;$('bm').onclick=()=>{mm=!mm;$('bm').textContent=mm?'Music: Off':'Music: On';mus()};$('bs').onclick=()=>{sm=!sm;$('bs').textContent=sm?'SFX: Off':'SFX: On'};$('bn').onclick=nextTrack;
 document.querySelectorAll('.pad button').forEach(b=>{
  const d=b.dataset.d.split(',').map(Number);let t,i;
