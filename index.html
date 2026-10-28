@@ -78,6 +78,7 @@ canvas{border-width:3px}
 .card b{line-height:1.25}.card span{font-size:13px;line-height:1.4}
 .pd{font-size:14px!important;line-height:1.5;text-align:left}
 .rt{font-size:12px}
+.sq{margin:0;padding-left:20px;text-align:left;font-size:14px;line-height:1.5;list-style:square;display:flex;flex-direction:column;gap:6px}.sq li::marker{color:var(--ac)}
 .dr{flex-direction:row;align-items:center;gap:10px}
 .dr .ic{width:30px;height:30px;vertical-align:middle;flex:none}
 .dr div{display:flex;flex-direction:column;gap:2px;min-width:0}
@@ -784,10 +785,10 @@ function help(t){
  t=typeof t=='string'?t:'rules';
  const tabs=[['rules','Rules'],['items','Items'],['floors','Floors'],['keys','Controls']].map(([k,n])=>`<button class="tb${k==t?' on':''}" onclick="help('${k}')">${n}</button>`).join(''),
  body={
-  rules:`<p style="text-align:left">Push every box onto a goal of the same color. Boxes can only be pushed, never pulled.</p><p style="text-align:left">Arrow tiles can only be entered along the arrow. Mud costs 2 steps. Undo costs steps too.</p><p style="text-align:left">A yellow plate opens the iron gate once a box is pushed onto it (you stepping on it does nothing). The gate stays open afterwards.</p><p style="text-align:left">Running out of steps costs a heart. The closer you get to the best route, the more stars and coins you earn. Conditions are shown before each floor; a shop appears every 4 floors and a boss every 5.</p><p style="text-align:left">While playing, tap a condition tag under the floor title or a relic at the bottom to read what it does.</p>`,
+  rules:`<ul class="sq"><li>Push each box onto the goal with the same color.</li><li>You can only push boxes. You cannot pull them.</li><li>Arrow tiles: enter only in the arrow's direction.</li><li>Mud costs 2 steps. Undo costs steps too.</li><li>A yellow plate opens the iron gate when a box is pushed on it. The gate stays open.</li><li>No steps left? You lose a heart.</li><li>Fewer steps = more stars and coins.</li><li>A shop comes every 4 floors. A boss comes every 5.</li><li>Tap a floor tag or a relic to see what it does.</li></ul>`,
   items:`<div id="hd" class="hd">Tap a relic to read what it does.</div>`+[0,1,2,3].map(r=>`<p class="gh r${r}"><b>${RC[r]}</b></p><div class="row">`+POOL.filter(x=>!x.lootOff&&x.r==r).map(x=>`<button class="ib r${x.r}" data-i="${x.id}" onclick="hi('${x.id}')">${ico(x.id)} ${x.n}</button>`).join('')+`</div>`).join(''),
-  floors:`<p style="text-align:left">Floor conditions change the rules of a floor. You see them before you enter, and they stay visible as tags under the floor title.</p><div class="cards dc">${Object.keys(MODS).map(k=>mcard(k)).join('')}</div>`,
-  keys:`<p style="text-align:left"><b>Keyboard:</b> Arrow keys or WASD to move · Z undo · R restart · E pull · X swap · G dice · H hint (2 coins).</p><p style="text-align:left"><b>Touch:</b> swipe on the board or use the D-pad. Matching boxes and goals share a color and a shape mark.</p><p><button onclick="toggleShake()">Screen shake: ${SK?'On':'Off'}</button></p>`
+  floors:`<ul class="sq"><li>Floor conditions change the rules of a floor.</li><li>You see them before you enter. They stay as tags under the floor title.</li></ul><div class="cards dc">${Object.keys(MODS).map(k=>mcard(k)).join('')}</div>`,
+  keys:`<ul class="sq"><li><b>Keyboard:</b> Arrow keys or WASD to move.</li><li>Z undo · R restart · E pull · X swap · G dice · H hint (2 coins).</li><li><b>Touch:</b> swipe on the board or use the D-pad.</li><li>Same color and shape mark = box and goal match.</li></ul><p><button onclick="toggleShake()">Screen shake: ${SK?'On':'Off'}</button></p>`
  }[t];
  ov(`<h2>How to Play</h2><div class="row">${tabs}</div>${body}<button onclick="${S.over?'start()':'hide()'}">Continue</button>`);
 }
@@ -803,7 +804,7 @@ function savedRun(){try{return JSON.parse(localStorage.getItem('pxsoko2run'))}ca
 function start(){
  LT++;if(tk!=MENU){tk=MENU;mus()}
  const r=savedRun(),cr=r&&r.S&&DF[r.S.df]&&r.L0?`<button class="card" onclick="resume()"><b>Continue run</b><span>${DF[r.S.df].n} · Floor ${r.S.d}</span></button>`:'';
- ov(`<h2>Endless Boxes</h2><p>Choose difficulty</p><div class="cards">${cr}`+DF.map((x,i)=>`<button class="card" onclick="go(${i})"><b>${x.n} · Best: Floor ${B[i]||0}</b><span>${x.d}</span></button>`).join('')+`<button class="card" onclick="tut()"><b>Tutorial</b><span>3 short guided floors: push, match colors, pull</span></button></div><button onclick="help()">How to Play</button>`)
+ ov(`<h2>Endless Boxes</h2><p>Choose difficulty</p><div class="cards">${cr}`+DF.map((x,i)=>`<button class="card" onclick="go(${i})"><b>${x.n} · Best: Floor ${B[i]||0}</b><span>${x.d}</span></button>`).join('')+`<button class="card" style="height:60px;align-items:center;justify-content:center;text-align:center" onclick="tut()"><b>Tutorial</b></button></div><button onclick="help()">How to Play</button>`)
 }
 function resume(){
  const r=savedRun();if(!r)return start();
@@ -819,7 +820,7 @@ function draw(){
  $('lv').innerHTML=`<b>${S.tut?'Tutorial · '+S.tut+'/'+TUT.length:DF[S.df].n+' · Floor '+S.d}${L.boss?' · '+bossOf(S.d).n:''}${L.opt!=null&&!S.tut?' · ★★★ ≤ '+(L.opt+Math.ceil(L.opt*.08)):''}</b>`+(L.M.length?`<div class="mc">${L.M.map(k=>`<button class="mt" onclick="minfo('${k}')">${ic(MODS[k][2])} ${MODS[k][0]}</button>`).join('')}</div>`:'');
  $('hud').innerHTML=[['life',S.life],['undo',S.undo],['shoe',L.left],['pull',L.pull],['ham',L.ham],['shield',S.sh],['bag',S.coin]].filter(([k,v],i)=>v>0||i<3).map(([k,v])=>`<span class="${k=='shoe'&&L.left<=5?'low':''}">${ic(k)} ${v>90?'∞':v}</span>`).join('');
  $('rel').innerHTML=[...new Set(S.rel)].map(id=>`<button class="ib r${POOL.find(p=>p.id==id).r}" onclick="rinfo('${id}')">${ico(id)}${cnt(id)>1?'×'+cnt(id):''} ${POOL.find(p=>p.id==id).n}</button>`).join('');
- $('bp').hidden=!(cnt('pull')||cnt('fury')||cnt('rope'));$('bp').textContent='Pull ×'+(L.pull>90?'∞':L.pull);$('bp').classList.toggle('on',armed);$('bu').textContent='Undo ×'+S.undo+(UC()?' −'+UC():'');$('bt').textContent=S.tut?'Hint':'Hint ·2';$('bd').hidden=!cnt('dice')||!!S.dd;$('bw').hidden=!cnt('swap');$('bw').textContent='Swap ×'+(L.swp|0);$('bw').classList.toggle('on',wa);
+ $('bp').hidden=!(cnt('pull')||cnt('fury')||cnt('rope'));$('bp').textContent='Pull ×'+(L.pull>90?'∞':L.pull);$('bp').classList.toggle('on',armed);$('bu').textContent='Undo ×'+S.undo;$('bt').textContent=S.tut?'Hint':'Hint ·2';$('bd').hidden=!cnt('dice')||!!S.dd;$('bw').hidden=!cnt('swap');$('bw').textContent='Swap ×'+(L.swp|0);$('bw').classList.toggle('on',wa);
 }
 const GL=[[[1,0],[0,1],[1,1],[2,1],[1,2]],[[0,0],[2,0],[1,1],[0,2],[2,2]],[[0,0],[1,0],[2,0],[0,2],[1,2],[2,2]]];
 function tile(x,y){
